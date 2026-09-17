@@ -67,9 +67,25 @@ two kinds of content:
   symbol so it carries a hover definition.
 - **Hand-authored chrome and tools** (everything else): the CSS, the shell
   (top bar, sidebar, search), the Home, Directory, Glossary and Workbench
-  templates, and the script. Reading aids that sit around the generated text
-  (the "In brief" summaries, the "In plain terms" and "Try it" callouts) live
-  in `tools/annotations.js`, keyed by route and section id.
+  templates, and the script.
+- **The learning layer** (`tools/annotations.js`, merged in by the build):
+  per page, a lede, "Before you read this" (prerequisites, linked), "What
+  you will be able to do", "Key ideas", callouts pinned to section ids
+  ("In plain terms" for a hard passage, "Going deeper" for an elaboration
+  with outside links, "Try it" for the Workbench), and "Background from
+  real physics and mathematics" (outside links, each with a note saying
+  what carries over). The site is meant to be learned in order, so every
+  page should have all of these; keep the outside links to stable
+  references (Wikipedia, the Feynman Lectures) and never let one imply
+  the Codex is real physics.
+- **Cross-references are the structure.** The build computes a reference
+  graph and prints it everywhere: under every equation, the symbols it
+  uses with their definitions and a "Used in" line (sections and
+  Directory entries that cite it); on the Glossary, every equation a
+  symbol appears in; in the Directory, the entries each entry mentions
+  and is mentioned by; on the home page, a learning path with reading
+  times. When adding to the Codex, cite by number (`§3.5`, `Eq. 4.7`,
+  `N-EM-01`) and the links, backlinks and symbol lists follow for free.
 
 Routing is hash-based: `#/route`, with optional `?query` for page state
 (directory filters, workbench inputs) and `#anchor` for in-page targets, e.g.
@@ -112,9 +128,12 @@ Design rules, so edits stay coherent:
   luminance, not by eye. No gradients, glows or decorative shadows; the
   only shadows are on floating popovers.
 - **Structure over decoration.** Numbered equations are `<figure class="eq">`
-  with the title on the left and the number right-aligned in the caption;
-  tables are real tables with a caption where it helps; callouts are one of
-  `plain`, `try`, `warn`, `note`, each a left rule with a small-caps label.
+  with the title on the left and the number right-aligned in the caption,
+  followed by the symbol list and the "Used in" line; tables are real
+  tables with a caption where it helps; callouts are one of `plain`,
+  `deeper`, `try`, `warn`, `note`, each a left rule with a short bold
+  label in sentence case. No uppercase tracked labels anywhere: they are
+  what makes a page read as a dashboard rather than a book.
   No canvas animation. A figure or chart is only worth adding where moving a
   control changes a quantity the reader can read off (the Workbench plots
   are the pattern: inline SVG, redrawn from the same numbers the results
