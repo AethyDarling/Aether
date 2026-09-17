@@ -88,23 +88,33 @@ tier, computed from `SPELLS`.
 
 Design rules, so edits stay coherent:
 
-- **It is a reference, so it looks like one.** Light paper by default, a dark
-  scheme (`:root[data-theme="dark"]`, following `prefers-color-scheme` until
-  the toggle is used) with every token redefined. Both schemes must be kept
-  in sync; add a token to both blocks or to neither.
-- **Type.** Source Serif 4 for prose and headings, Inter for interface text
-  (navigation, tables, chips, forms), JetBrains Mono for every equation,
-  symbol and directory code. Body 18px / 1.6, prose measure 720px.
-- **Colour carries information only.** One accent (bronze) for links, focus
-  and the active state; `--danger` for backlash and failure; `--ok` for a
-  clean casting; one hue per coupling sector for chips and equation rules
-  (`gauge`, `quark`, `metric`, `dm` for beyond-Legend, `found` for
-  foundational). Every text/background pair is ≥ 4.5:1 in both schemes;
-  check new tokens by WCAG relative luminance, not by eye. No gradients,
-  glows or decorative shadows; the only shadows are on floating popovers.
+- **It is a reference, so it looks like one.** Near-white paper and
+  near-black ink by default, a dark scheme (`:root[data-theme="dark"]`,
+  following `prefers-color-scheme` until the toggle is used) with every
+  token redefined. Both schemes must be kept in sync; add a token to both
+  blocks or to neither.
+- **Simple and sharp.** Hairlines instead of boxes: sections, equations,
+  tables, callouts and Workbench panels are separated by 1px rules (a
+  black rule where a block starts, a light one elsewhere), not by filled
+  cards. Square corners (2px). The only fills are code backgrounds, table
+  row hover and the expanded directory entry. Sector chips are a small dot
+  plus text, never a pill.
+- **Type.** Inter, semibold and tightly tracked, for headings and interface
+  text (navigation, tables, chips, forms); Source Serif 4 for prose;
+  JetBrains Mono for every equation, symbol and directory code. Body
+  18px / 1.6, prose measure 700px.
+- **Colour carries information only.** One amber accent for links, equation
+  numbers and the active state; black for selected controls; `--danger`
+  for backlash and failure; `--ok` for a clean casting; one hue per
+  coupling sector for dots and equation rules (`gauge`, `quark`, `metric`,
+  `dm` for beyond-Legend, `found` for foundational). Every text/background
+  pair is ≥ 4.5:1 in both schemes; check new tokens by WCAG relative
+  luminance, not by eye. No gradients, glows or decorative shadows; the
+  only shadows are on floating popovers.
 - **Structure over decoration.** Numbered equations are `<figure class="eq">`
-  with the number and title in the caption; tables are real tables with a
-  caption where it helps; callouts are one of `plain`, `try`, `warn`, `note`.
+  with the title on the left and the number right-aligned in the caption;
+  tables are real tables with a caption where it helps; callouts are one of
+  `plain`, `try`, `warn`, `note`, each a left rule with a small-caps label.
   No canvas animation. A figure or chart is only worth adding where moving a
   control changes a quantity the reader can read off (the Workbench plots
   are the pattern: inline SVG, redrawn from the same numbers the results
