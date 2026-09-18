@@ -210,7 +210,16 @@ async function draft(request, env) {
   const text = typeof out === "string" ? out : (out && typeof out.response === "string") ? out.response : JSON.stringify((out && out.response != null) ? out.response : out);
   const m = text.match(/\{[\s\S]*\}/);
   let drafts = [];
-  try { const parsed = JSON.parse(m ? m[0] : text); drafts = (parsed.drafts || []).filter((d) => d && d.name && d.text).slice(0, 3).map((d) => ({ name: String(d.name).slice(0, 60), text: String(d.text).slice(0, 900) })); } catch (e) { /* fall through */ }
+  try {
+    const parsed = JSON.parse(m ? m[0] : text);
+    drafts = (parsed.drafts || []).filter((d) => d && d.name && d.text).slice(0, 3).map((d) => {
+      const name = String(d.name).replace(/^\[?[A-Z]{1,2}(?:-[A-Z]{2})?-\d+\]?\s*/, "").slice(0, 60).trim();
+      // the model tends to copy the examples' "[CODE] Name (Tier, Force)." prefix; the sheet adds its own
+      let body = String(d.text).trim().replace(/^\[?[A-Z]{1,2}(?:-[A-Z]{2})?-\d+\]?\s*/, "");
+      if (body.toLowerCase().indexOf(name.toLowerCase()) === 0) body = body.slice(name.length).replace(/^\s*\([^)]*\)\s*[.:—-]?\s*/, "").replace(/^\s*[.:—-]\s*/, "");
+      return { name, text: body.charAt(0).toUpperCase() + body.slice(1, 900) };
+    });
+  } catch (e) { /* fall through */ }
   if (!drafts.length) return json({ error: "The model did not return usable drafts; try again." }, 502);
   return json({ drafts, model: MODEL, examples: sources.map(sourceOut) });
 }
