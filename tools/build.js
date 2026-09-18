@@ -292,7 +292,8 @@ function convert(md, route, opts) {
           '<figcaption><span class="eq-n">Eq. ' + n + '</span><span class="eq-t" data-n="' + n + '">' + inline(title) + "</span>" +
           (note ? '<span class="eq-note">' + inline(note) + "</span>" : "") +
           '<a class="anchor" href="#/' + route + "#" + eqId(n) + '" aria-label="Link to this equation">#</a></figcaption>' +
-          '<div class="eqbody"><pre>' + eqBody(bodyTxt) + '</pre><span class="eqnum">(' + n + ")</span></div>" + where + used + "</figure>");
+          '<div class="eqbody"><pre>' + eqBody(bodyTxt) + '</pre><span class="eqnum">(' + n + ")</span></div>" + where + used +
+          '<p class="eq-tools"><a href="#/ask?mode=explain&q=' + encodeURIComponent("Explain Eq. " + n + " (" + title.replace(/[`*]/g, "") + ") step by step: what each term does and when it is used.") + '">Ask the tutor about this equation</a> · <a href="#/drill?scope=eq&card=' + encodeURIComponent(n) + '">Drill it</a> · <a href="#/map?focus=' + encodeURIComponent("e:" + n) + '">See it on the map</a></p></figure>');
         toc.push({ id: eqId(n), text: "Eq. " + n + " " + title.replace(/[`*]/g, ""), level: 5 });
         i = j; continue;
       }
@@ -560,7 +561,7 @@ for (const p of PAGES) {
     const id = hm ? hm[1] : "";
     const title = hm ? (SEC_TITLE[p.route + "#" + id] || id) : PAGE_TITLE[p.file];
     // split long sections into ~1200-character pieces at paragraph boundaries so retrieval stays precise
-    const paras = ch.split(/(?=<p>|<figure |<ul>|<div class="tbl">|<aside )/).map(strip).filter((t) => t.length > 40);
+    const paras = ch.replace(/<p class="eq-tools">[\s\S]*?<\/p>/g, "").split(/(?=<p>|<figure |<ul>|<div class="tbl">|<aside )/).map(strip).filter((t) => t.length > 40);
     let buf = "", n = 0;
     const flush = () => { if (buf.trim()) { CHUNKS.push({ k: "sec", r: p.route, id, t: title + (n ? " (cont.)" : ""), page: PAGE_TITLE[p.file], x: buf.trim() }); n++; } buf = ""; };
     for (const para of paras) { if ((buf + " " + para).length > 1400 && buf) flush(); buf += " " + para; }
@@ -574,7 +575,79 @@ for (const n of Object.keys(EQ_TEXT)) {
 for (const s of SPELLS_RAW) CHUNKS.push({ k: "spell", r: "directory", id: s.c, t: s.c + " " + s.n, page: s.t, x: "[" + s.c + "] " + s.n + " (" + s.t + (s.force ? ", " + s.force : "") + (s.pair ? ", " + s.pair : "") + (s.mat ? ", " + s.mat : "") + "). " + (s.eq ? s.eq + " " : "") + s.dmd.replace(/[`*]/g, "") });
 for (const r of SYMROWS.concat(EXTRA_SYMS)) CHUNKS.push({ k: "sym", r: "glossary", id: "symbols", t: r[0].replace(/`/g, ""), page: "Glossary", x: r[0].replace(/`/g, "") + ": " + r[1].replace(/`/g, "") + " (defined in " + r[2].replace(/`/g, "") + ")" });
 fs.mkdirSync(path.join(ROOT, "src"), { recursive: true });
-fs.writeFileSync(path.join(ROOT, "src", "codex-index.json"), JSON.stringify({ version: (read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1], chunks: CHUNKS }));
+// a hash of every chunk's text, so the Worker can tell whether src/codex-vectors.json (built by tools/embed.mjs) still matches
+const INDEX_HASH = require("crypto").createHash("sha1").update(CHUNKS.map((c) => c.x).join("\u0001")).digest("hex").slice(0, 16);
+fs.writeFileSync(path.join(ROOT, "src", "codex-index.json"), JSON.stringify({ version: (read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1], hash: INDEX_HASH, chunks: CHUNKS }));
+
+/* ───────────────────────── the map of the Codex (MAPDATA) ─────────────────────────
+   One node per chapter, numbered section, equation, symbol used by an equation and
+   Directory entry; one edge per cross-reference the build already knows about. The
+   layout is force-directed, seeded, and computed here so the page only has to draw it. */
+const MAP = { nodes: [], edges: [], byId: {} };
+function mapNode(id, kind, label, route, anchor, cls) { if (MAP.byId[id] !== undefined) return MAP.byId[id]; const i = MAP.nodes.length; MAP.byId[id] = i; MAP.nodes.push({ id, kind, label, route, anchor, cls, x: 0, y: 0, deg: 0 }); return i; }
+function mapEdge(a, b, kind, w) { const i = MAP.byId[a], j = MAP.byId[b]; if (i === undefined || j === undefined || i === j) return; MAP.edges.push([i, j, kind, w || 1]); MAP.nodes[i].deg++; MAP.nodes[j].deg++; }
+const TIER_ROUTE_MAP = { Novice: "techniques/novice", Journeyman: "techniques/journeyman", Adept: "techniques/adept", Artisan: "techniques/artisan", Master: "techniques/master", Warden: "techniques/warden", Legend: "techniques/legend", "Beyond Legend": "techniques/ascension" };
+const EQ_HOME = {};
+for (const p of PAGES) {
+  if (p.route === "changelog") continue;
+  mapNode("c:" + p.route, "chapter", PAGE_TITLE[p.file], p.route, "", p.tier);
+  let prev = null;
+  for (const t of p.toc) {
+    if (t.level > 4 || /^eq-/.test(t.id)) continue;
+    const id = "s:" + p.route + "#" + t.id;
+    mapNode(id, "section", t.text, p.route, t.id, p.tier);
+    mapEdge("c:" + p.route, id, "in", t.level === 2 ? 1.2 : 0.7);
+    if (prev) mapEdge(prev, id, "seq", 0.5);
+    prev = id;
+  }
+  // which section defines each equation
+  for (const ch of p.html.split(/(?=<h[2-4] id=")/)) {
+    const hm = ch.match(/^<h[2-4] id="([^"]+)"/); const sid = hm ? hm[1] : "";
+    for (const m of ch.matchAll(/<figure class="eq [a-z]+" id="eq-([^"]+)"/g)) EQ_HOME[m[1].replace(/-/g, ".")] = { r: p.route, id: sid };
+  }
+}
+for (const n of Object.keys(EQ_TEXT)) {
+  const m = EQ_META[n] || {}; const r = EQ_ROUTE[n] || "directory";
+  mapNode("e:" + n, "equation", "Eq. " + n + (m.name ? " " + m.name : ""), r, eqId(n), m.cls || "found");
+  const home = EQ_HOME[n];
+  if (home && home.id && MAP.byId["s:" + home.r + "#" + home.id] !== undefined) mapEdge("s:" + home.r + "#" + home.id, "e:" + n, "def", 1.5);
+  else if (MAP.byId["c:" + r] !== undefined) mapEdge("c:" + r, "e:" + n, "def", 1.2);
+}
+for (const n of Object.keys(EQ_SYMS)) for (const k of EQ_SYMS[n]) { mapNode("y:" + k, "symbol", k, "glossary", "symbols", "sym"); mapEdge("e:" + n, "y:" + k, "sym", 0.6); }
+for (const n of Object.keys(USAGE.eq)) for (const u of USAGE.eq[n]) { if (u.r === "changelog") continue; const sid = "s:" + u.r + "#" + u.id; if (MAP.byId[sid] !== undefined) mapEdge(sid, "e:" + n, "cite", 0.8); }
+for (const sN of Object.keys(USAGE.sec)) { const tr = SEC_ROUTE[sN]; if (!tr) continue; const target = "s:" + tr + "#" + secId(sN); for (const u of USAGE.sec[sN]) { if (u.r === "changelog") continue; const sid = "s:" + u.r + "#" + u.id; if (MAP.byId[sid] !== undefined) mapEdge(sid, target, "cite", 0.6); } }
+for (const s of SPELLS) {
+  mapNode("p:" + s.c, "spell", s.c + " " + s.n, "directory", s.c, s.ch);
+  const tr = TIER_ROUTE_MAP[s.t]; if (tr && MAP.byId["c:" + tr] !== undefined) mapEdge("p:" + s.c, "c:" + tr, "tier", 0.35);
+  for (const n of s.eqs) mapEdge("p:" + s.c, "e:" + n, "draws", 0.5);
+  for (const c of s.codes) mapEdge("p:" + s.c, "p:" + c, "mention", 0.4);
+}
+// layout: Fruchterman–Reingold with a seeded start, chapters on a ring in reading order
+(function layout() {
+  let seed = 20260918; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const N = MAP.nodes, E = MAP.edges, n = N.length;
+  const chapters = N.filter((d) => d.kind === "chapter");
+  const chapterPos = {};
+  chapters.forEach((c, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / chapters.length; c.x = 420 * Math.cos(a); c.y = 420 * Math.sin(a); chapterPos[c.route] = c; });
+  const anchorOf = (d) => { if (d.kind === "chapter") return null; if (d.kind === "spell") { const t = SPELLS.find((s) => s.c === d.anchor); return chapterPos[TIER_ROUTE_MAP[t.t]] || null; } if (d.kind === "symbol") return null; return chapterPos[d.route] || null; };
+  N.forEach((d) => { if (d.kind === "chapter") return; const a = anchorOf(d); const ang = rnd() * 2 * Math.PI, rad = d.kind === "spell" ? 60 + rnd() * 120 : 40 + rnd() * 90; d.x = (a ? a.x : 0) + rad * Math.cos(ang); d.y = (a ? a.y : 0) + rad * Math.sin(ang); });
+  const area = 1000 * 1000, k = Math.sqrt(area / n) * 0.9, k2 = k * k;
+  const mass = (d) => d.kind === "spell" ? 0.35 : d.kind === "symbol" ? 0.6 : d.kind === "chapter" ? 3 : 1;
+  let temp = 120;
+  const dx = new Float64Array(n), dy = new Float64Array(n);
+  for (let it = 0; it < 320; it++) {
+    dx.fill(0); dy.fill(0);
+    for (let i = 0; i < n; i++) { const a = N[i]; const ma = mass(a); for (let j = i + 1; j < n; j++) { const b = N[j]; let ex = a.x - b.x, ey = a.y - b.y; let d2 = ex * ex + ey * ey; if (d2 < 1) { ex = rnd() - 0.5; ey = rnd() - 0.5; d2 = 1; } if (d2 > 90000) continue; const f = k2 * Math.sqrt(ma * mass(b)) / d2; dx[i] += ex * f; dy[i] += ey * f; dx[j] -= ex * f; dy[j] -= ey * f; } }
+    for (const [i, j, kind, w] of E) { const a = N[i], b = N[j]; const ex = a.x - b.x, ey = a.y - b.y; const d = Math.sqrt(ex * ex + ey * ey) || 1; const f = d * d / k * w * 0.9 / d; dx[i] -= ex * f; dy[i] -= ey * f; dx[j] += ex * f; dy[j] += ey * f; }
+    for (let i = 0; i < n; i++) { const a = N[i]; const g = a.kind === "chapter" ? 0.02 : 0.045; dx[i] -= a.x * g; dy[i] -= a.y * g; const d = Math.sqrt(dx[i] * dx[i] + dy[i] * dy[i]) || 1; const step = Math.min(d, temp); a.x += dx[i] / d * step; a.y += dy[i] / d * step; }
+    temp = Math.max(1.5, temp * 0.985);
+  }
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  N.forEach((d) => { minx = Math.min(minx, d.x); maxx = Math.max(maxx, d.x); miny = Math.min(miny, d.y); maxy = Math.max(maxy, d.y); });
+  const s = 960 / Math.max(maxx - minx, maxy - miny);
+  N.forEach((d) => { d.x = Math.round((d.x - minx) * s + 20); d.y = Math.round((d.y - miny) * s + 20); });
+})();
+const MAPDATA = { n: MAP.nodes.map((d) => [d.id, d.kind, d.label, d.x, d.y, d.route, d.anchor, d.cls, d.deg]), e: MAP.edges.map((e) => [e[0], e[1], e[2]]) };
 
 const dataJs = [
   "var SPELLS = " + JSON.stringify(SPELLS) + ";",
@@ -587,6 +660,7 @@ const dataJs = [
   "var SECUSE = " + JSON.stringify(USAGE.sec) + ";",
   "var EQTEXT = " + JSON.stringify(EQ_TEXT) + ";",
   "var PAGEMETA = " + JSON.stringify(PAGES.map((p) => ({ r: p.route, t: PAGE_TITLE[p.file], mins: Math.max(2, Math.round(p.words / 200)), eqs: p.eqs.map((e) => e.n) }))) + ";",
+  "var MAPDATA = " + JSON.stringify(MAPDATA) + ";",
   "var CODEX_VERSION = " + JSON.stringify((read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1]) + ";",
 ].join("\n");
 

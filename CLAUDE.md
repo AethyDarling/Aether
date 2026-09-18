@@ -11,10 +11,18 @@ A hard-magic system for fiction: the Aether Codex, plus a static site that prese
   from `codex/`. Plain Node, no packages. `tools/annotations.js` holds the
   hand-written reading aids it merges in.
 - `src/worker.js` — the Cloudflare Worker behind `/api/*`: "Ask the Codex"
-  (retrieval over the Codex plus a Workers AI model, streamed with
-  citations), quiz questions and marking, and model-written Directory
-  drafts for the Workbench. `src/codex-index.json` is its retrieval index,
-  written by the build; never edit it by hand. No keys: the `ai` binding in
+  (hybrid retrieval over the Codex plus a Workers AI model, streamed with
+  citations), quiz questions and marking, model-written Directory drafts
+  for the Workbench, and `/api/embed` for the script below.
+  `src/codex-index.json` is its lexical retrieval index, written by the
+  build; `src/codex-vectors.json` is the semantic half, written by
+  `node tools/embed.mjs <deployed-worker-url>` (it embeds every chunk of
+  the index with Workers AI's bge-small model through the deployed Worker
+  and stores unit vectors as int8). Never edit either by hand. The index
+  carries a hash of its text; the Worker checks the vectors against it and
+  falls back to lexical search alone when they are stale, so a Codex edit
+  is never broken by a forgotten embed step, only slightly less precise
+  until `tools/embed.mjs` is re-run. No keys: the `ai` binding in
   `wrangler.jsonc` is the free-tier account binding.
 - `sw.js`, `manifest.webmanifest`, `icon.svg`, `icon-maskable.svg`,
   `fonts/` — the site installs as an app and reads offline; the two font
@@ -98,20 +106,47 @@ two kinds of content:
   `N-EM-01`) and the links, backlinks and symbol lists follow for free.
 
 The tutor (`#/ask`, Appendix D) is the one feature with a server side. The
-client posts to `/api/ask`, `/api/quiz` and `/api/draft`; the Worker does
-BM25 retrieval over the index, hands the best passages to Llama 3.1 8B on
-Workers AI with a system prompt that forbids answering from anything but
-those passages, and streams the answer as server-sent events preceded by a
-`sources` event. The client turns every §, Eq. and code in the answer into
-a link. Identical questions are served from the Cache API for a day and a
-per-IP limiter keeps a personal site inside the free daily allowance. If
-the endpoint is missing or the allowance is spent, the page says so and
-nothing else on the site depends on it. The model is a reader of the
-Codex, not an authority: keep the prompts grounded and cited, never let it
-present its own invention as Codex text.
+client posts to `/api/ask`, `/api/quiz` and `/api/draft`; the Worker
+ranks the index two ways (BM25 over the words, cosine over the bge-small
+vectors, fused by reciprocal rank; an exact code or equation number in the
+question is always kept), hands the best passages to a Workers AI model
+with a system prompt that forbids answering from anything but those
+passages, and streams the answer as server-sent events preceded by a
+`sources` event. Two model tiers: *careful* (Llama 3.3 70B first, then
+smaller models) and *quick* (Llama 3.1 8B); a retired model ID is skipped
+for the life of the isolate, a busy one only for that request. Five modes
+change only the system prompt: explain, Socratic (a question back first),
+derive (term by term), compare, and in-the-story (what a witness sees,
+still cited). The client turns every §, Eq. and code in the answer into a
+link, and every equation figure carries an "Ask the tutor" link with the
+question pre-filled. Identical questions are served from the Cache API for
+a day and a per-IP limiter keeps a personal site inside the free daily
+allowance. If the endpoint is missing or the allowance is spent, the page
+says so and nothing else on the site depends on it. The model is a reader
+of the Codex, not an authority: keep the prompts grounded and cited, never
+let it present its own invention as Codex text.
 
-Reading progress (chapters marked read, last position) and the colour and
-text-size options live in localStorage only; nothing is sent anywhere.
+Four more appendices need no server. The **Map** (`#/map`, Appendix E)
+draws the reference graph: `MAPDATA` is emitted by the build (chapters,
+sections, equations, symbols and Directory entries as nodes; containment,
+citation, symbol use, draws-on and mentions as edges) with a seeded
+force-directed layout computed in `tools/build.js`, so the page only
+draws SVG, pans, zooms and highlights neighbourhoods; every chapter,
+equation and entry links into it with `?focus=<node id>` (`c:`, `s:`,
+`e:`, `y:`, `p:` prefixes). The **Drill** (`#/drill`, Appendix F) makes
+flashcards from the data arrays at runtime (symbols, equations both ways,
+terms, entries) and schedules them with SM-2 in localStorage. The
+**Spellbook** (`#/spellbook`, Appendix G) stores Workbench workings in
+localStorage; a working's URL carries its whole setup (the Workbench
+writes every non-default input, the name and the description into the
+hash), so a link is a share, and the book exports and imports as JSON.
+**The whole book** (`#/book`) clones every chapter template plus the
+Directory and Glossary into one page with a print stylesheet, for reading
+straight through or saving as a PDF.
+
+Reading progress (chapters marked read, last position), drill schedules,
+the spellbook and the colour, text-size and tutor-depth options live in
+localStorage only; nothing is sent anywhere.
 
 Routing is hash-based: `#/route`, with optional `?query` for page state
 (directory filters, workbench inputs) and `#anchor` for in-page targets, e.g.
@@ -179,7 +214,10 @@ Design rules, so edits stay coherent:
   route in a headless browser and check for console errors and horizontal
   overflow at 390px and 1366px (Playwright is fine for this), in both
   schemes. The Worker can be unit-tested in Node with a mocked `AI`
-  binding (rewrite the JSON import with `with { type: "json" }`); the real
-  model can only be exercised on a deployed preview, so after pushing,
-  hit `/api/health` and `/api/ask` on the branch preview URL before
-  merging.
+  binding (rewrite the two JSON imports with `with { type: "json" }`);
+  the real models can only be exercised on a deployed preview, so after
+  pushing, hit `/api/health` (it reports the index hash, whether the
+  vectors match it, and the model each tier is using) and `/api/ask` on
+  the branch preview URL before merging. If the Codex changed, run
+  `node tools/embed.mjs <preview-url>` against that preview and commit
+  the new `src/codex-vectors.json` before merging.
