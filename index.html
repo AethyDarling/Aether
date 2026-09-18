@@ -2430,7 +2430,7 @@ function readSSE(res, onSources, onText){
     var d = data.join("\n");
     if (event === "sources") { try { onSources(JSON.parse(d)); } catch (e) {} return; }
     if (event === "done" || d === "[DONE]") return;
-    try { var j = JSON.parse(d); if (j.response) { full += j.response; onText(j.response); } } catch (e) {}
+    try { var j = JSON.parse(d); if (j.response != null && j.response !== "") { var piece = String(j.response); full += piece; onText(piece); } } catch (e) {}
   }
   return reader.read().then(function step(r){
     if (r.done) { if (buf.trim()) handle(buf); return full; }

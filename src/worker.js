@@ -133,8 +133,26 @@ async function streamWithSources(env, ctx, messages, sources, cacheKey) {
   const w = writable.getWriter();
   ctx.waitUntil((async () => {
     await w.write(head);
-    const reader = ai.getReader();
-    for (;;) { const { value, done } = await reader.read(); if (done) break; await w.write(value); }
+    // normalise the model's SSE: some models emit numeric tokens as JSON numbers
+    // and some wrap text differently; the client always gets {"response": "<string>"}
+    const reader = ai.getReader(), dec = new TextDecoder();
+    let buf = "";
+    const emit = async (block) => {
+      const lines = block.split("\n").filter((l) => l.startsWith("data:"));
+      for (const l of lines) {
+        const d = l.slice(5).trim();
+        if (!d || d === "[DONE]") continue;
+        let piece = "";
+        try { const j = JSON.parse(d); piece = j.response != null ? String(j.response) : (j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content) || ""; } catch (e) { piece = ""; }
+        if (piece) await w.write(enc.encode("data: " + JSON.stringify({ response: piece }) + "\n\n"));
+      }
+    };
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf("\n\n")) >= 0) { await emit(buf.slice(0, i)); buf = buf.slice(i + 2); }
+    }
+    if (buf.trim()) await emit(buf);
     await w.write(enc.encode("event: done\ndata: {}\n\n"));
     await w.close();
   })());
@@ -189,7 +207,7 @@ async function draft(request, env) {
   const shots = examples.length ? examples : sources.map((s) => s.x);
   const messages = [{ role: "system", content: DRAFT }, { role: "user", content: "Existing entries, for voice:\n\n" + shots.join("\n\n") + "\n\nThe working to write entries for:\n" + desc + "\n\nOutput the JSON now." }];
   const out = await runAI(env, { messages, max_tokens: 900, temperature: 0.8 });
-  const text = typeof out === "string" ? out : (out && out.response) || "";
+  const text = typeof out === "string" ? out : (out && typeof out.response === "string") ? out.response : JSON.stringify((out && out.response != null) ? out.response : out);
   const m = text.match(/\{[\s\S]*\}/);
   let drafts = [];
   try { const parsed = JSON.parse(m ? m[0] : text); drafts = (parsed.drafts || []).filter((d) => d && d.name && d.text).slice(0, 3).map((d) => ({ name: String(d.name).slice(0, 60), text: String(d.text).slice(0, 900) })); } catch (e) { /* fall through */ }
