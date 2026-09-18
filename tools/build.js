@@ -550,6 +550,32 @@ const fileMap = (OVERVIEW.html.match(/<div class="tbl">[\s\S]*?<\/div>/) || [""]
 const pagesHtml = PAGES.map(pageTemplate).join("\n") +
   '\n<template id="t-overview-filemap">' + fileMap + "</template>";
 
+/* ───────────────────────── retrieval index for the Worker (src/codex-index.json) ───────────────────────── */
+const strip = (h) => h.replace(/<pre[\s\S]*?<\/pre>/g, (m) => " " + m.replace(/<[^>]+>/g, "") + " ").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+const CHUNKS = [];
+for (const p of PAGES) {
+  const chunks = p.html.split(/(?=<h[2-4] id=")/);
+  for (const ch of chunks) {
+    const hm = ch.match(/^<h[2-4] id="([^"]+)"/);
+    const id = hm ? hm[1] : "";
+    const title = hm ? (SEC_TITLE[p.route + "#" + id] || id) : PAGE_TITLE[p.file];
+    // split long sections into ~1200-character pieces at paragraph boundaries so retrieval stays precise
+    const paras = ch.split(/(?=<p>|<figure |<ul>|<div class="tbl">|<aside )/).map(strip).filter((t) => t.length > 40);
+    let buf = "", n = 0;
+    const flush = () => { if (buf.trim()) { CHUNKS.push({ k: "sec", r: p.route, id, t: title + (n ? " (cont.)" : ""), page: PAGE_TITLE[p.file], x: buf.trim() }); n++; } buf = ""; };
+    for (const para of paras) { if ((buf + " " + para).length > 1400 && buf) flush(); buf += " " + para; }
+    flush();
+  }
+}
+for (const n of Object.keys(EQ_TEXT)) {
+  const m = EQ_META[n]; const syms = (EQ_SYMS[n] || []).map((k) => k + ": " + SYM[k].d.replace(/`/g, "")).join("; ");
+  CHUNKS.push({ k: "eq", r: EQ_ROUTE[n] || "directory", id: eqId(n), t: "Equation " + n + (m ? ". " + m.name : ""), page: m ? m.sec : "", x: "Eq. " + n + (m ? " " + m.name + " (" + m.tier + "): " + m.desc : "") + "\n" + EQ_TEXT[n] + (syms ? "\nwhere " + syms : "") });
+}
+for (const s of SPELLS_RAW) CHUNKS.push({ k: "spell", r: "directory", id: s.c, t: s.c + " " + s.n, page: s.t, x: "[" + s.c + "] " + s.n + " (" + s.t + (s.force ? ", " + s.force : "") + (s.pair ? ", " + s.pair : "") + (s.mat ? ", " + s.mat : "") + "). " + (s.eq ? s.eq + " " : "") + s.dmd.replace(/[`*]/g, "") });
+for (const r of SYMROWS.concat(EXTRA_SYMS)) CHUNKS.push({ k: "sym", r: "glossary", id: "symbols", t: r[0].replace(/`/g, ""), page: "Glossary", x: r[0].replace(/`/g, "") + ": " + r[1].replace(/`/g, "") + " (defined in " + r[2].replace(/`/g, "") + ")" });
+fs.mkdirSync(path.join(ROOT, "src"), { recursive: true });
+fs.writeFileSync(path.join(ROOT, "src", "codex-index.json"), JSON.stringify({ version: (read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1], chunks: CHUNKS }));
+
 const dataJs = [
   "var SPELLS = " + JSON.stringify(SPELLS) + ";",
   "var GLOSSARY = " + JSON.stringify(GLOSSARY) + ";",
@@ -576,6 +602,7 @@ html = replaceBetween(html, "/* BUILD:data */", "/* /BUILD:data */", dataJs);
 fs.writeFileSync(INDEX, html);
 
 const bytes = Buffer.byteLength(html);
+console.log("wrote src/codex-index.json: " + CHUNKS.length + " chunks");
 console.log("built index.html: " + (bytes / 1024).toFixed(0) + " KB · " + SPELLS.length + " directory entries · " + EQINDEX.length + " equations · " + GLOSSARY.length + " symbols · " + PAGES.length + " generated pages");
 const missing = EQINDEX.filter((e) => !e.r).map((e) => e.n);
 if (missing.length) console.warn("equations without a resolved page: " + missing.join(", "));

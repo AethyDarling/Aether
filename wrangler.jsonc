@@ -1,17 +1,32 @@
 // Cloudflare Workers deploy config for the Aether Codex site.
-// This is a static-assets-only Worker: no server-side script, no build
-// step -- index.html is the entire site, and its own router works
-// entirely off the URL hash (#/foundations, #/techniques/adept, ...),
-// so the server only ever needs to answer "/" with index.html.
+// The site itself is static: index.html, the fonts, the service worker and
+// the manifest are served from the repo root as static assets. The Worker
+// in src/worker.js adds three small endpoints under /api/* backed by
+// Workers AI (the free-tier account binding; no key, nothing stored). The
+// repo's Workers Builds Git integration deploys this on every push with no
+// dashboard-side setup: Wrangler bundles src/worker.js and the retrieval
+// index tools/build.js writes next to it.
 // Docs: https://developers.cloudflare.com/workers/static-assets/
+//       https://developers.cloudflare.com/workers-ai/
 {
 	"name": "aether",
+	"main": "src/worker.js",
 	"compatibility_date": "2026-08-30",
 	"assets": {
 		"directory": "./",
+		"binding": "ASSETS",
+		// The Worker runs first so /api/* never falls through to the SPA
+		// fallback; everything else it hands straight to the asset layer.
+		"run_worker_first": true,
 		// Any path Wrangler can't map to a file (a stray direct link, a
 		// trailing slash variant) falls back to index.html rather than a
 		// bare 404, since every real "page" here is client-side anyway.
 		"not_found_handling": "single-page-application"
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	"observability": {
+		"enabled": true
 	}
 }

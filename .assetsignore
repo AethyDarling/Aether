@@ -1,9 +1,11 @@
 # Cloudflare Workers static-asset upload: gitignore-style exclusions.
-# Keeps the deployed site to the page itself; the Codex source, the build
-# tooling and the maintainer docs stay on GitHub rather than becoming loose
+# Keeps the deployed site to the page, the fonts, the service worker and
+# the manifest; the Codex source, the Worker source, the build tooling and
+# the maintainer docs stay on GitHub rather than becoming loose
 # web-accessible files with no index.
 CLAUDE.md
 README.md
 codex/
 tools/
+src/
 roblox-reference.md
