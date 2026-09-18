@@ -235,7 +235,7 @@ async function ask(request, env, ctx) {
   const mode = MODES[body.mode] !== undefined ? body.mode : "explain";
   const depth = body.depth === "quick" ? "quick" : "careful";
   if (!q) return json({ error: "Ask something." }, 400);
-  const sources = await searchHybrid(env, q + " " + history.map((m) => m.content).join(" ").slice(0, 300), scope, mode === "compare" ? 8 : 6);
+  const sources = await searchHybrid(env, q + " " + history.map((m) => m.content).join(" ").slice(0, 300), scope, mode === "compare" || depth === "careful" ? 8 : 6);
   if (!sources.length) return json({ error: "Nothing in the Codex matches that. Try naming a section, an equation or a spell code." }, 404);
   const messages = [{ role: "system", content: SYSTEM + MODES[mode] }, { role: "user", content: "Passages from the Codex:\n\n" + passagesBlock(sources) }].concat(history, [{ role: "user", content: q }]);
   const key = history.length ? null : new Request("https://cache.aether/ask/" + INDEX.version + "/" + (await sha(scope + "|" + mode + "|" + depth + "|" + q.toLowerCase())));
