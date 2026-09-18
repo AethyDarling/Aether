@@ -29,7 +29,7 @@
 const plain = (title, body) => '<aside class="callout plain"><p class="co-h">' + title + "</p>" + body + "</aside>";
 const deeper = (title, body) => '<aside class="callout deeper"><p class="co-h">Going deeper · ' + title + "</p>" + body + "</aside>";
 const tryit = (body, href) => '<aside class="callout try"><p class="co-h">Try it in the Workbench</p><p>' + body + ' <a href="' + href + '">Open the Workbench →</a></p></aside>';
-const ext = (href, label) => '<a href="' + href + '" target="_blank" rel="noopener">' + label + "</a>";
+const ext = (href, label) => '<a class="ext" href="' + href + '" target="_blank" rel="noopener">' + label + "</a>";
 const W = (page, label) => ext("https://en.wikipedia.org/wiki/" + page, label);
 
 module.exports = {
