@@ -6,10 +6,21 @@
 <title>The Aether Codex</title>
 <meta name="description" content="The Aether Codex: the complete reference for a layered-field hard-magic system. Foundations, the Grand Unified Aether Equation, the Power Hierarchy, applied techniques by tier, the 439-entry Spell Directory, a symbol glossary, and a Spell Workbench for building new techniques from the equations.">
 <meta name="color-scheme" content="light dark">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="theme-color" content="#FBF9F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171612" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preload" href="fonts/SourceSerif4-400-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/SourceSerif4-600-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/JetBrainsMono-400-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/JetBrainsMono-400-normal-latin.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/JetBrainsMono-500-normal-latin.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:italic;font-weight:400;font-display:swap;src:url(fonts/SourceSerif4-400-italic-latin.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:italic;font-weight:600;font-display:swap;src:url(fonts/SourceSerif4-600-italic-latin.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/SourceSerif4-400-normal-latin.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/SourceSerif4-600-normal-latin.woff2) format('woff2')}
 /* ══════════════════════════════════════════════════════════════
    The Aether Codex — site v7: a textbook.
    One serif for everything you read, one monospace for everything
@@ -431,6 +442,41 @@ fieldset legend{font-variant:small-caps; letter-spacing:.05em; font-weight:600; 
 .about summary{cursor:pointer; padding:8px 0; font-weight:600; font-style:italic}
 .about dl{margin:4px 0 10px} .about dt{font-family:var(--mono); font-size:.9em; margin-top:6px} .about dd{margin:0; color:var(--ink-2)}
 
+/* ── the tutor ─────────────────────────────────────────── */
+.askbox{display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; margin:14px 0 8px}
+.askbox textarea{width:100%; min-height:64px; font-family:var(--serif); font-size:16px; padding:9px 11px; border:1px solid var(--line-2); border-radius:2px; background:var(--bg); color:var(--ink); resize:vertical}
+.askbox textarea:focus{border-color:var(--ink); outline:none}
+.askbox .btn{min-height:40px}
+.askrow{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:var(--fs-small); color:var(--ink-3); margin:0 0 10px}
+.askrow select{font-family:var(--serif); font-size:14.5px; padding:5px 8px; border:1px solid var(--line-2); border-radius:2px; background:var(--bg); color:var(--ink); max-width:100%}
+.sugg{display:flex; flex-wrap:wrap; gap:4px; margin:6px 0 18px}
+.sugg .fchip{border-color:var(--line-2); text-align:left; white-space:normal; line-height:1.3}
+.turn{border-top:1px solid var(--ink); padding:14px 0 8px; margin:0 0 6px}
+.turn .tq{font-style:italic; color:var(--ink-2); margin:0 0 10px}
+.turn .tq::before{content:"Q. "; font-style:normal; font-weight:600; color:var(--ink)}
+.ta p{margin:0 0 .8em}
+.ta p:first-child::before{content:"A. "; font-weight:600}
+.thinking{color:var(--ink-3); font-style:italic}
+.terr{color:var(--danger); font-style:italic}
+.tsrc{font-size:.9em; color:var(--ink-3); margin:6px 0 0; line-height:1.55; padding-top:6px; border-top:1px dotted var(--line-2)}
+.tsrc b{margin-right:4px}
+.quiz{margin-top:36px; padding-top:14px; border-top:1px solid var(--ink)}
+.quiz textarea{width:100%; min-height:90px; font-family:var(--serif); font-size:16px; padding:9px 11px; border:1px solid var(--line-2); border-radius:2px; background:var(--bg); color:var(--ink); resize:vertical; margin:8px 0}
+.quiz .qout .tq{font-size:1.05em; font-style:italic; margin:10px 0}
+.quiz .qstat{padding:8px 0 4px 14px; border-left:3px solid var(--line-2); margin-top:10px}
+.quiz .qstat.ok{border-left-color:var(--ok)} .quiz .qstat.warn{border-left-color:var(--warnc)} .quiz .qstat.danger{border-left-color:var(--danger)}
+.quiz .qstat p:first-child{font-weight:600}
+.chapter-tools{display:flex; flex-wrap:wrap; gap:8px; margin:26px 0 0; padding-top:12px; border-top:1px solid var(--line); max-width:var(--measure); font-size:var(--fs-small)}
+.chapter-tools .btn{font-size:13.5px}
+.chapter-tools .done{color:var(--ok); font-style:italic; align-self:center}
+.continue{margin:0 0 18px; padding:10px 0 10px 14px; border-left:3px solid var(--spot); font-size:var(--fs-small)}
+.path td.st{width:22px; color:var(--ok); text-align:center}
+.results a .snip{display:block; color:var(--ink-2); font-size:13px; line-height:1.4; margin-top:2px; font-style:italic}
+.results a .snip mark{background:var(--spot-bg); color:inherit; padding:0 .1em}
+#mdrafts .drafts{margin-top:6px}
+.tutor-note{font-size:var(--fs-small); color:var(--ink-3); font-style:italic}
+@media (max-width:700px){ .askbox{grid-template-columns:1fr} }
+
 /* ── responsive ────────────────────────────────────────── */
 @media (max-width:1180px){
   .layout{grid-template-columns:minmax(0, var(--measure)); gap:0}
@@ -510,6 +556,7 @@ fieldset legend{font-variant:small-caps; letter-spacing:.05em; font-weight:600; 
   <div class="grp">Front matter</div>
   <a class="nav" href="#/" data-r=""><span class="n">—</span>Preface and contents</a>
   <a class="nav" href="#/workbench" data-r="workbench"><span class="n">C</span>Spell Workbench</a>
+  <a class="nav" href="#/ask" data-r="ask"><span class="n">D</span>Ask the Codex</a>
   <div class="grp">Parts I–III · The system</div>
   <a class="nav" href="#/foundations" data-r="foundations"><span class="n">§1–2</span>Foundations</a>
   <a class="nav" href="#/grand-equation" data-r="grand-equation"><span class="n">§3</span>The Grand Equation</a>
@@ -638,6 +685,33 @@ fieldset legend{font-variant:small-caps; letter-spacing:.05em; font-weight:600; 
     <h2>A note on the text</h2>
     <p>The Codex is sixteen plain-markdown files under <code>codex/</code> in the repository, one per area, and this site renders them one chapter each; the pages are generated from the files, so the site cannot drift from the source. Equations are written in plain ASCII so they can be typed straight into a manuscript. The file map below is the Codex's own.</p>
     <div id="filemap"></div>
+  </section>
+</div>
+</template>
+
+<!-- ══════════════ ASK THE CODEX ══════════════ -->
+<template id="t-ask">
+<div class="page askpage" data-route="ask">
+  <header class="pagehead">
+    <p class="part">Appendix D · the tutor</p>
+    <h1>Ask the Codex</h1>
+    <p class="lede">A tutor that reads the Codex before it answers. Ask anything about the system; it finds the relevant sections, equations and Directory entries, answers from those and only those, and cites them so you can check every claim. Below, it will set you examination questions on a chapter and mark your answers.</p>
+  </header>
+  <div class="callout" id="askwarn" hidden><p class="co-h">The tutor is not available right now</p><p>The site's small server side, which runs the model on Cloudflare's free allowance, did not answer. The Codex itself is unaffected: the search box in the top bar covers every section, equation, symbol and spell, and the Workbench works entirely in your browser. Try again later.</p></div>
+  <div class="callout"><p class="co-h">How it works, and what it cannot do</p><p>Your question is matched against every section, equation and entry of the Codex (753 passages) by plain text search, the best six are handed to a small open model running on Cloudflare (Llama 3.1 8B), and it is instructed to answer only from those passages and to cite them by number. It is a reader, not an oracle: it can explain what the Codex says and connect sections, but it does not know anything the Codex does not say, and it can misread. Every citation is a link; follow it. Answers to a question asked before are served from a cache, and each visitor gets a couple of dozen questions per ten minutes so a personal site stays inside the free tier.</p></div>
+  <div class="askrow"><label>Ask about <select id="askscope"></select></label><button type="button" class="btn small" id="askclear">Start over</button></div>
+  <div class="askbox"><textarea id="askq" placeholder="Why does an Adept's fidelity enter squared?" aria-label="Your question"></textarea><button type="button" class="btn primary" id="askbtn">Ask</button></div>
+  <div class="sugg" id="asksugg"></div>
+  <div id="askout"></div>
+
+  <section class="quiz">
+    <h2>Test yourself</h2>
+    <p>Pick a chapter and the tutor sets a question of the kind a textbook puts at the end of a chapter: about the mechanism, answerable from the text in a few sentences. Write your answer and it marks it against the Codex, with citations, and gives the ideal answer.</p>
+    <div class="askrow"><label>Chapter <select id="quizroute"></select></label><button type="button" class="btn" id="quiznew">Set me a question</button></div>
+    <div class="qout" id="quizout"></div>
+    <textarea id="quizans" placeholder="Your answer, in your own words…" aria-label="Your answer"></textarea>
+    <div class="rowbtns"><button type="button" class="btn primary" id="quizgrade" disabled>Mark my answer</button></div>
+    <div class="qstat" id="quizstat"></div>
   </section>
 </div>
 </template>
@@ -1173,7 +1247,8 @@ var ROUTES = [
   { p:"directory",              tpl:"t-directory",             title:"The Spell Directory",       crumb:"Reference · §4.4 · <b>Spell Directory</b>",  label:"Spell Directory · §4.4", init:initDirectory },
   { p:"glossary",               tpl:"t-glossary",              title:"Glossary & Equation Index", crumb:"Reference · §5–6 · <b>Glossary &amp; Index</b>", label:"Glossary &amp; Index · §5–6", init:initGlossary },
   { p:"changelog",              tpl:"t-changelog",             title:"Changelog",                 crumb:"Reference · §7 · <b>Changelog</b>",          label:"Changelog · §7" },
-  { p:"workbench",              tpl:"t-workbench",             title:"Spell Workbench",           crumb:"Tool · <b>Spell Workbench</b>",              label:"Spell Workbench", init:initWorkbench, onQuery:function(root, q){ if (q.mode && wb && (q.mode !== wb.mode || q.src !== wb.src)) initWorkbench(root, q); } }
+  { p:"workbench",              tpl:"t-workbench",             title:"Spell Workbench",           crumb:"Tool · <b>Spell Workbench</b>",              label:"Spell Workbench", init:initWorkbench, onQuery:function(root, q){ if (q.mode && wb && (q.mode !== wb.mode || q.src !== wb.src)) initWorkbench(root, q); } },
+  { p:"ask",                    tpl:"t-ask",                   title:"Ask the Codex",             crumb:"Appendix D · <b>Ask the Codex</b>",          label:"Ask the Codex", init:initAsk }
 ];
 var app = $("#app"), crumb = $("#crumb");
 var current = { route: null, query: {}, anchor: "" };
@@ -1207,7 +1282,8 @@ function render(){
   var idx = routeIndex(h.route);
   if (idx === -1) { idx = 0; }
   var r = ROUTES[idx];
-  var sameRoute = current.route === r.p && app.firstElementChild;
+  var sameRoute = current.route === r.p && app.firstElementChild && !render.force;
+  render.force = false;
   var queryChanged = JSON.stringify(h.query) !== JSON.stringify(current.query);
   current = { route: r.p, query: h.query, anchor: h.anchor };
 
@@ -1238,7 +1314,13 @@ function render(){
   if (idx < ROUTES.length - 1) ph += '<a class="next" href="#/' + ROUTES[idx + 1].p + '"><span class="pl">Next →</span><span class="pt">' + ROUTES[idx + 1].label + '</span></a>';
   pager.innerHTML = ph;
   if (pageEl) pageEl.appendChild(pager);
-  var foot = el("div", { "class": "sitefoot" }, 'The Aether Codex v' + esc(CODEX_VERSION) + ' · a hard-magic system for fiction. Section and equation numbers are global across every page. Hover or tap a dotted symbol for its definition. Use ← and → to page through in reading order; colour scheme and text size are in the menu.');
+  if (pageEl && PAGEMETA.some(function(pm){ return pm.r === r.p; })) {
+    var done = !!(PROG[r.p] && PROG[r.p].done);
+    var tools = el("div", { "class": "chapter-tools" }, '<a class="btn small" href="#/ask?scope=' + encodeURIComponent(r.p) + '">Ask the tutor about this chapter</a><a class="btn small" href="#/ask?scope=' + encodeURIComponent(r.p) + '&quiz=1">Test me on this chapter</a><button type="button" class="btn small" data-markread="' + r.p + '">' + (done ? "Mark as unread" : "Mark this chapter as read") + '</button>' + (done ? '<span class="done">Read.</span>' : ""));
+    tools.addEventListener("click", function(e){ var b = e.target.closest("[data-markread]"); if (!b) return; markRead(r.p, !(PROG[r.p] && PROG[r.p].done)); render.force = true; render(); });
+    pageEl.insertBefore(tools, pager);
+  }
+  var foot = el("div", { "class": "sitefoot" }, 'The Aether Codex v' + esc(CODEX_VERSION) + ' · a hard-magic system for fiction. Section and equation numbers are global across every page. Hover or tap a dotted symbol for its definition. Use ← and → to page through in reading order; colour scheme and text size are in the menu. Installable and readable offline.');
   if (pageEl) pageEl.appendChild(foot);
 
   document.title = (idx === 0 ? r.title : r.title + " · The Aether Codex");
@@ -1251,7 +1333,9 @@ function render(){
   prepSyms(app);
   if (r.init) { try { r.init(app, h.query); } catch (e) { console.error(e); } }
   initScrollSpy(app);
-  if (h.anchor) { requestAnimationFrame(function(){ scrollToAnchor(h.anchor); }); } else window.scrollTo(0, 0);
+  if (h.anchor) { requestAnimationFrame(function(){ scrollToAnchor(h.anchor); }); }
+  else if (h.query.resume && PROG[r.p] && PROG[r.p].y) { requestAnimationFrame(function(){ window.scrollTo(0, PROG[r.p].y); }); }
+  else window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", render);
 
@@ -1306,7 +1390,29 @@ function buildSearchIndex(){
   GLOSSARY.forEach(function(g){ ix.push({ g:"Symbols", k:g.s, t:g.d.replace(/<[^>]+>/g, "").slice(0, 90), s:"", h:"#/glossary?q=" + encodeURIComponent(g.s) + "#symbols" }); });
   TERMS.forEach(function(g){ ix.push({ g:"Terms", k:"", t:g.s, s:g.d.replace(/<[^>]+>/g, "").slice(0, 80), h:"#/glossary?q=" + encodeURIComponent(g.s) + "#terms" }); });
   SPELLS.forEach(function(s){ ix.push({ g:"Spells", k:s.c, t:s.n, s:s.t + (s.f ? " · " + s.f : "") + (s.p ? " · " + s.p.replace("+", " + ") : "") + (s.m ? " · " + s.m : ""), h:"#/directory#" + s.c, x:s.s.toLowerCase() }); });
+  // the text itself: every paragraph of every chapter, keyed to its nearest heading
+  ROUTES.forEach(function(r){
+    var tpl = document.getElementById(r.tpl); if (!tpl || !PAGEMETA.some(function(pm){ return pm.r === r.p; })) return;
+    var art = tpl.content.querySelector(".article"); if (!art) return;
+    var secId = "", secT = r.title;
+    $all(".article > *", tpl.content).forEach(function(elm){
+      if (/^H[2-4]$/.test(elm.tagName)) { secId = elm.id; secT = elm.textContent.replace(/#$/, "").trim(); return; }
+      if (elm.tagName !== "P" && !elm.classList.contains("callout")) return;
+      var txt = elm.textContent.replace(/\s+/g, " ").trim(); if (txt.length < 60) return;
+      ix.push({ g:"In the text", k:"", t:secT, s:r.title, h:"#/" + r.p + (secId ? "#" + secId : ""), x:txt.toLowerCase(), full:txt });
+    });
+  });
   return ix;
+}
+function snippet(full, terms){
+  var low = full.toLowerCase(), i = -1;
+  terms.forEach(function(t){ var j = low.indexOf(t); if (j >= 0 && (i < 0 || j < i)) i = j; });
+  if (i < 0) i = 0;
+  var a = Math.max(0, i - 60), b = Math.min(full.length, i + 120);
+  var snip = (a > 0 ? "…" : "") + full.slice(a, b) + (b < full.length ? "…" : "");
+  var h = esc(snip);
+  terms.forEach(function(t){ if (t.length < 2) return; h = h.replace(new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); });
+  return h;
 }
 var gsSel = -1, gsItems = [];
 function runSearch(){
@@ -1323,19 +1429,19 @@ function runSearch(){
       if (it.k.toLowerCase() === tm || it.t.toLowerCase() === tm) sc += 10;
       else if (it.k.toLowerCase().indexOf(tm) === 0 || it.t.toLowerCase().indexOf(tm) === 0) sc += 5;
       else if (hay.indexOf(tm) >= 0) sc += 2;
-      else if (it.x && it.x.indexOf(tm) >= 0) sc += 1;
+      else if (it.x && it.x.indexOf(tm) >= 0) sc += (it.g === "In the text" ? 1.5 : 1);
       else { sc = 0; break; }
     }
     if (sc) scored.push({ it: it, sc: sc });
   });
   scored.sort(function(a, b){ return b.sc - a.sc; });
   var groups = {}, order = [];
-  scored.slice(0, 40).forEach(function(s){ if (!groups[s.it.g]) { groups[s.it.g] = []; order.push(s.it.g); } if (groups[s.it.g].length < 8) groups[s.it.g].push(s.it); });
+  scored.slice(0, 60).forEach(function(s){ if (!groups[s.it.g]) { groups[s.it.g] = []; order.push(s.it.g); } if (groups[s.it.g].length < (s.it.g === "In the text" ? 6 : 8)) groups[s.it.g].push(s.it); });
   gsItems = [];
   var html = "";
   order.forEach(function(g){
     html += '<div class="grp">' + g + "</div>";
-    groups[g].forEach(function(it){ gsItems.push(it); html += '<a href="' + esc(it.h) + '" data-i="' + (gsItems.length - 1) + '">' + (it.k ? '<span class="k">' + esc(it.k) + "</span>" : "") + esc(it.t) + (it.s ? ' <span class="s">' + esc(it.s) + "</span>" : "") + "</a>"; });
+    groups[g].forEach(function(it){ gsItems.push(it); html += '<a href="' + esc(it.h) + '" data-i="' + (gsItems.length - 1) + '">' + (it.k ? '<span class="k">' + esc(it.k) + "</span>" : "") + esc(it.t) + (it.s ? ' <span class="s">' + esc(it.s) + "</span>" : "") + (it.full ? '<span class="snip">' + snippet(it.full, terms) + "</span>" : "") + "</a>"; });
   });
   if (!html) html = '<div class="none">Nothing matches “' + esc(gsi.value.trim()) + '”.</div>';
   gsr.innerHTML = html; gs.classList.add("open"); gsSel = -1;
@@ -1375,7 +1481,10 @@ var PATH_NOTES = {
 function initHome(root){
   $("#homev", root).textContent = "v" + CODEX_VERSION;
   var tb = $("#pathtable tbody", root);
-  if (tb) tb.innerHTML = PAGEMETA.map(function(p, i){ var n = PATH_NOTES[p.r] || { g: "", n: "" }; return '<tr><td class="n">' + (i + 1) + '</td><td class="first"><a href="#/' + p.r + '">' + esc(p.t) + "</a></td><td>" + esc(n.g) + (p.eqs.length ? ' <span class="why">Eq. ' + p.eqs[0] + (p.eqs.length > 1 ? "–" + p.eqs[p.eqs.length - 1] : "") + "</span>" : "") + '</td><td class="t">' + esc(n.n) + '</td><td class="t">' + p.mins + " min</td></tr>"; }).join("");
+  var last = PROG.last && PAGEMETA.filter(function(p){ return p.r === PROG.last; })[0];
+  var doneCount = PAGEMETA.filter(function(p){ return PROG[p.r] && PROG[p.r].done; }).length;
+  if (last || doneCount) { var c = el("div", { "class": "continue" }, (last ? "<b>Continue reading:</b> <a href=\"#/" + last.r + "?resume=1\">Chapter " + (PAGEMETA.indexOf(last) + 1) + ", " + esc(last.t) + "</a>, where you left off. " : "") + (doneCount ? doneCount + " of " + PAGEMETA.length + " chapters marked read." : "")); tb.closest(".section").insertBefore(c, tb.closest(".tbl")); }
+  if (tb) tb.innerHTML = PAGEMETA.map(function(p, i){ var n = PATH_NOTES[p.r] || { g: "", n: "" }; var dn = PROG[p.r] && PROG[p.r].done; return '<tr><td class="n">' + (dn ? '<span class="st" title="read">✓</span>' : (i + 1)) + '</td><td class="first"><a href="#/' + p.r + '">' + esc(p.t) + "</a></td><td>" + esc(n.g) + (p.eqs.length ? ' <span class="why">Eq. ' + p.eqs[0] + (p.eqs.length > 1 ? "–" + p.eqs[p.eqs.length - 1] : "") + "</span>" : "") + '</td><td class="t">' + esc(n.n) + '</td><td class="t">' + p.mins + " min</td></tr>"; }).join("");
   var fm = document.getElementById("t-overview-filemap");
   if (fm) { var host = $("#filemap", root); host.appendChild(fm.content.cloneNode(true)); prepSyms(host); }
 }
@@ -1816,6 +1925,10 @@ function bindInputs(root){
     var ud = e.target.closest("[data-usedraft]");
     if (ud) { var dr = DRAFTS_NOW[+ud.getAttribute("data-usedraft")]; if (dr) { wb.name = dr.n; wb.desc = dr.d; compute(root); $("#wbsheet", root).scrollIntoView({ block: "start" }); } return; }
     if (e.target.closest("[data-reroll]")) { wb.seed = (wb.seed || 0) + 1; compute(root); return; }
+    var md = e.target.closest("[data-modeldraft]");
+    if (md) { modelDrafts(root, md); return; }
+    var um = e.target.closest("[data-usemodel]");
+    if (um) { var dm = MODEL_DRAFTS[+um.getAttribute("data-usemodel")]; if (dm) { wb.name = dm.n; wb.desc = dm.d; compute(root); $("#wbsheet", root).scrollIntoView({ block: "start" }); } return; }
     var c = e.target.closest("[data-copy]");
     if (c) { var txt = c.getAttribute("data-copy") === "link" ? location.href : $("#sheetout", root).textContent; copyText(txt, $("#wbstatus", root), c.getAttribute("data-copy") === "link" ? "Link copied." : "Entry copied."); }
   });
@@ -2002,7 +2115,7 @@ function examplesBlock(F, ctx){
   var sim = similar(), dr = drafts(F, ctx);
   var h = "";
   if (sim.length) h += '<p class="help">Entries in the Directory that do what you are building. Open one to see its full text and what it draws on.</p><ul class="exlist">' + sim.map(function(s){ return '<li><a class="xc" href="#/directory#' + s.c + '">' + s.c + '</a><span class="xn">' + esc(s.n) + '</span><span class="xd">' + esc(firstSentence(s.s)) + "</span></li>"; }).join("") + "</ul>";
-  if (dr.length) h += '<p class="help" style="margin-top:14px">Drafts written from your inputs, in the Directory\'s own voice. Use one as a starting point, then edit it in the sheet below.</p><ul class="drafts">' + dr.map(function(d, i){ return '<li><span class="dn">' + esc(d.n) + '</span><span class="dd">' + esc(d.d) + '</span><button type="button" class="btn small" data-usedraft="' + i + '">Use this draft</button></li>'; }).join("") + '</ul><div class="rowbtns"><button type="button" class="btn small" data-reroll="1">Show different examples</button></div>';
+  if (dr.length) h += '<p class="help" style="margin-top:14px">Drafts written from your inputs, in the Directory\'s own voice. Use one as a starting point, then edit it in the sheet below.</p><ul class="drafts">' + dr.map(function(d, i){ return '<li><span class="dn">' + esc(d.n) + '</span><span class="dd">' + esc(d.d) + '</span><button type="button" class="btn small" data-usedraft="' + i + '">Use this draft</button></li>'; }).join("") + '</ul><div class="rowbtns"><button type="button" class="btn small" data-reroll="1">Show different examples</button><button type="button" class="btn small" data-modeldraft="1">Write three more with the model</button><span class="tutor-note">The model reads these examples and your numbers, and writes new entries on Cloudflare\'s free allowance.</span></div><div id="mdrafts"></div>';
   return h ? sec("Examples of the spell you are writing", h) : "";
 }
 
@@ -2167,6 +2280,8 @@ function compute(root){
     P = plotSing(Rc, Rs, Xi, Fs, rq);
     sheet.code = ""; sheet.eq = "Curv(g)(r) = Xi(Ae,g) * [ Bump(r,R_core) - Shell(r,R_core,R_shell) ] + (1 - Fid_shell) * Xi|_{R_core} * r^-3 * Step(r - R_shell)"; sheet.summary = "A Bound Singularity with R_core = " + Rc + ", R_shell = " + Rs + ", M_ae = " + Mae + "; horizon ratio " + fmt(horizon, 2) + ", shell fidelity " + Fs + ". Sovereign workings are not catalogued (§4.4); held for generations this is a Standing Singularity (Eq. 4.23).";
   }
+  var vtxt = (V.match(/<div class="vt">([^<]*)<\/div>/) || [0, ""])[1];
+  V += '<p class="tutor-note"><a href="#/ask?q=' + encodeURIComponent("In the Workbench, a " + MODE_TIER[wb.mode] + " working came out as: " + vtxt.replace(/<[^>]+>/g, "") + ". Explain what that means and what governs it.") + '">Ask the tutor to explain this result →</a></p>';
   out.innerHTML = "<h2>Result</h2>" + V +
     (N ? sec("What this working does", N) : "") +
     sec("The numbers", R) +
@@ -2278,6 +2393,142 @@ function plotSing(Rc, Rs, Xi, Fs, rq){
   function vl(r, lbl){ var x = pad + (r / rmax) * (w - pad - 10); return '<line x1="' + x + '" y1="14" x2="' + x + '" y2="' + (h - pad) + '" stroke="var(--ink-3)" stroke-dasharray="4 4"/><text x="' + (x + 4) + '" y="24" font-size="10.5" fill="var(--ink-3)">' + lbl + "</text>"; }
   return plot(w, h, axes(w, h, pad, "r →", "Curv(g)(r)") + '<line x1="' + pad + '" y1="' + zero + '" x2="' + (w - 10) + '" y2="' + zero + '" stroke="var(--line)"/>' + vl(Rc, "R_core") + vl(Rs, "R_shell") + '<path d="' + pathFrom(pts) + '" fill="none" stroke="var(--metric)" stroke-width="2"/><circle cx="' + cx + '" cy="' + cy + '" r="5" fill="var(--metric)"/>',
     "The unified form (Eq. 4.12): the raw well inside R_core, the counter-curvature shell in the annulus, and beyond R_shell only the residual r⁻³ leak from an imperfect shell. Illustrative shapes for Bump and Shell; the Codex fixes their role, not their exact profile.");
+}
+
+/* ═════════ the tutor: Ask the Codex, quizzes, model drafts ═════════
+   Talks to src/worker.js. Everything here degrades gracefully: if the
+   endpoint is missing or the free allowance is spent, the page says so
+   and the rest of the site is unaffected. */
+var API_OK = null;
+function apiAvailable(){
+  if (API_OK !== null) return Promise.resolve(API_OK);
+  return fetch("/api/health", { method: "POST" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ API_OK = !!(j && j.ok); return API_OK; }).catch(function(){ API_OK = false; return false; });
+}
+/* the model's answer, rendered: paragraphs, *italics*, `code`, and every §, Eq. and code turned into a link */
+function renderAnswer(txt){
+  var paras = String(txt).replace(/\r/g, "").split(/\n{2,}/).map(function(p){ return p.trim(); }).filter(Boolean);
+  return paras.map(function(p){
+    var h = esc(p).replace(/\n/g, "<br>");
+    h = h.replace(/`([^`]+)`/g, function(m, c){ var d = SYMBOLS[c] || SYMBOLS[c.replace(/[\(\[].*$/, "")]; return d ? '<code class="sym" data-sym="' + esc(d.s) + '">' + c + "</code>" : "<code>" + c + "</code>"; });
+    h = h.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+    h = h.replace(/Eq\.\s?(\d\.\d+[a-g]?)/g, function(m, n){ var r = EQMAP[n]; return r ? '<a class="eqref" href="#/' + r + "#eq-" + n.replace(/\./g, "-") + '">Eq. ' + n + "</a>" : m; });
+    h = h.replace(/§\s?(\d(?:\.\d+)?)/g, function(m, sn){ var r = SECMAP[sn]; if (r === undefined) return m; var anchor = /\./.test(sn) || SECMAP[sn] !== undefined ? "#sec-" + sn.replace(/\./g, "-") : ""; return '<a class="secref" href="#/' + r + (r === "directory" || r === "glossary" || r === "changelog" ? "" : anchor) + '">§' + sn + "</a>"; });
+    h = h.replace(/\b([A-Z]{1,2}(?:-[A-Z]{2})?-\d{2,3})\b/g, function(m){ return BYCODE[m] ? '<a class="code-ref" href="#/directory#' + m + '">' + m + "</a>" : m; });
+    return "<p>" + h + "</p>";
+  }).join("");
+}
+function sourceLink(s){
+  var href = "#/" + s.r + (s.id ? "#" + s.id : "");
+  return '<a href="' + href + '">' + esc(s.cite) + "</a> <span class=\"why\">" + esc(s.t.replace(/ \(cont\.\)$/, "")) + (s.page && s.k === "sec" ? ", " + esc(s.page) : "") + "</span>";
+}
+/* read an SSE stream: onSources(list), onText(delta), onDone(); resolves with the full text */
+function readSSE(res, onSources, onText){
+  var reader = res.body.getReader(), dec = new TextDecoder(), buf = "", full = "", ev = "";
+  function handle(block){
+    var lines = block.split("\n"), event = "message", data = [];
+    lines.forEach(function(l){ if (l.indexOf("event:") === 0) event = l.slice(6).trim(); else if (l.indexOf("data:") === 0) data.push(l.slice(5).trim()); });
+    var d = data.join("\n");
+    if (event === "sources") { try { onSources(JSON.parse(d)); } catch (e) {} return; }
+    if (event === "done" || d === "[DONE]") return;
+    try { var j = JSON.parse(d); if (j.response != null && j.response !== "") { var piece = String(j.response); full += piece; onText(piece); } } catch (e) {}
+  }
+  return reader.read().then(function step(r){
+    if (r.done) { if (buf.trim()) handle(buf); return full; }
+    buf += dec.decode(r.value, { stream: true });
+    var i;
+    while ((i = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, i)); buf = buf.slice(i + 2); }
+    return reader.read().then(step);
+  });
+}
+function apiError(r){ return r.json().then(function(j){ return j.error || ("The tutor returned " + r.status + "."); }).catch(function(){ return "The tutor returned " + r.status + "."; }); }
+var ASK = { history: [], busy: false };
+function initAsk(root, query){
+  var qin = $("#askq", root), scope = $("#askscope", root), out = $("#askout", root), btn = $("#askbtn", root), sugg = $("#asksugg", root);
+  scope.innerHTML = '<option value="">The whole Codex</option>' + PAGEMETA.map(function(p){ return '<option value="' + p.r + '">' + esc(p.t) + "</option>"; }).join("") + '<option value="directory">The Spell Directory</option>';
+  if (query.scope) scope.value = query.scope;
+  if (query.q) qin.value = query.q;
+  var SUGG = ["What is the difference between a fizzle and a backlash, and why is only one dangerous?", "Walk me through boiling a kettle from the tap to the result.", "Why does fidelity enter squared for an Adept but not for a Journeyman?", "Why can a Warden's trick not be carried to a similar-looking stairwell?", "What happens if I release an Overlay Fold too early?", "How is a Legend different from a Sovereign?"];
+  sugg.innerHTML = SUGG.map(function(s){ return '<button type="button" class="fchip" data-sugg="' + esc(s) + '">' + esc(s) + "</button>"; }).join("");
+  sugg.addEventListener("click", function(e){ var b = e.target.closest("[data-sugg]"); if (b) { qin.value = b.getAttribute("data-sugg"); askNow(); } });
+  function askNow(){
+    var q = qin.value.trim(); if (!q || ASK.busy) return;
+    ASK.busy = true; btn.disabled = true;
+    var turn = el("div", { "class": "turn" }, '<p class="tq">' + esc(q) + '</p><div class="ta"><p class="thinking">Reading the Codex…</p></div><p class="tsrc"></p>');
+    out.appendChild(turn); turn.scrollIntoView({ block: "start" });
+    var ta = $(".ta", turn), ts = $(".tsrc", turn), text = "";
+    fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: q, scope: scope.value, history: ASK.history.slice(-4) }) })
+      .then(function(r){
+        if (!r.ok) return apiError(r).then(function(m){ ta.innerHTML = '<p class="terr">' + esc(m) + "</p>"; });
+        return readSSE(r, function(srcs){ var seen = {}; ts.innerHTML = "<b>Sources</b> " + srcs.filter(function(s){ var k = s.r + "#" + s.id; if (seen[k]) return false; seen[k] = 1; return true; }).map(sourceLink).join(" · "); }, function(delta){ text += delta; ta.innerHTML = renderAnswer(text); })
+          .then(function(full){ ta.innerHTML = renderAnswer(full || text); prepSyms(ta); ASK.history.push({ role: "user", content: q }, { role: "assistant", content: full || text }); });
+      })
+      .catch(function(){ ta.innerHTML = '<p class="terr">The tutor could not be reached. The Codex itself is unaffected; try the search box, or come back later.</p>'; })
+      .then(function(){ ASK.busy = false; btn.disabled = false; qin.value = ""; qin.focus(); });
+  }
+  btn.addEventListener("click", askNow);
+  qin.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); askNow(); } });
+  $("#askclear", root).addEventListener("click", function(){ ASK.history = []; out.innerHTML = ""; });
+  // quiz
+  var qz = { question: "", route: query.scope && query.scope !== "directory" ? query.scope : "foundations", seed: 0 };
+  var qsel = $("#quizroute", root), qout = $("#quizout", root), qans = $("#quizans", root), qgrade = $("#quizgrade", root), qnew = $("#quiznew", root), qstat = $("#quizstat", root);
+  qsel.innerHTML = PAGEMETA.filter(function(p){ return p.r !== "changelog"; }).map(function(p){ return '<option value="' + p.r + '"' + (p.r === qz.route ? " selected" : "") + ">" + esc(p.t) + "</option>"; }).join("");
+  function newQuestion(){
+    qz.route = qsel.value; qz.seed = Math.floor(Math.random() * 1e6); qz.question = ""; qans.value = ""; qgrade.disabled = true; qstat.innerHTML = "";
+    qout.innerHTML = '<p class="thinking">Setting a question from ' + esc(qsel.options[qsel.selectedIndex].text) + "…</p>";
+    var text = "", srcHtml = "";
+    fetch("/api/quiz", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ route: qz.route, seed: qz.seed }) })
+      .then(function(r){ if (!r.ok) return apiError(r).then(function(m){ qout.innerHTML = '<p class="terr">' + esc(m) + "</p>"; });
+        return readSSE(r, function(srcs){ srcHtml = srcs.length ? '<p class="tsrc"><b>From</b> ' + sourceLink(srcs[0]) + "</p>" : ""; }, function(d){ text += d; qout.innerHTML = '<p class="tq">' + esc(text) + "</p>"; })
+          .then(function(full){ qz.question = full || text; qout.innerHTML = '<p class="tq">' + esc(qz.question) + "</p>" + srcHtml; qgrade.disabled = false; qans.focus(); }); })
+      .catch(function(){ qout.innerHTML = '<p class="terr">The tutor could not be reached.</p>'; });
+  }
+  function grade(){
+    var a = qans.value.trim(); if (!a || !qz.question) return;
+    qgrade.disabled = true; qstat.innerHTML = '<p class="thinking">Marking…</p>';
+    var text = "";
+    fetch("/api/quiz", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ route: qz.route, question: qz.question, answer: a }) })
+      .then(function(r){ if (!r.ok) return apiError(r).then(function(m){ qstat.innerHTML = '<p class="terr">' + esc(m) + "</p>"; });
+        return readSSE(r, function(){}, function(d){ text += d; qstat.innerHTML = renderAnswer(text); }).then(function(full){ qstat.innerHTML = renderAnswer(full || text); prepSyms(qstat); var v = (full || text).split("\n")[0]; qstat.classList.remove("ok", "warn", "danger"); qstat.classList.add(/^Correct/.test(v) ? "ok" : /^Partly/.test(v) ? "warn" : "danger"); qgrade.disabled = false; }); })
+      .catch(function(){ qstat.innerHTML = '<p class="terr">The tutor could not be reached.</p>'; qgrade.disabled = false; });
+  }
+  qnew.addEventListener("click", newQuestion); qgrade.addEventListener("click", grade); qsel.addEventListener("change", function(){ qz.route = qsel.value; });
+  apiAvailable().then(function(ok){ if (!ok) $("#askwarn", root).hidden = false; else if (query.q) askNow(); else if (query.quiz) newQuestion(); });
+}
+ROUTES[routeIndex("ask")].onQuery = function(root, q){ if (q.q) { $("#askq", root).value = q.q; $("#askbtn", root).click(); } };
+
+/* model-written drafts for the Workbench */
+function modelDrafts(root, btn){
+  var host = $("#mdrafts", root); if (!host) return;
+  btn.disabled = true; host.innerHTML = '<p class="thinking">Writing three entries in the Directory\'s voice…</p>';
+  var sheet = $("#sheetout", root) ? $("#sheetout", root).textContent : "";
+  var cv = currentVariant();
+  var desc = "Tier: " + MODE_TIER[wb.mode] + ". " + (cv ? "Variation: " + cv.n + " (" + cv.eq + "). " : "") + "Draft entry with the numbers: " + sheet.replace(/```[\s\S]*?```/g, function(m){ return m.replace(/```/g, ""); }).replace(/\s+/g, " ").slice(0, 900);
+  var ex = similar().map(function(s){ return "[" + s.c + "] " + s.n + " — " + s.s; });
+  fetch("/api/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ context: { description: desc, examples: ex } }) })
+    .then(function(r){ return r.ok ? r.json() : apiError(r).then(function(m){ throw new Error(m); }); })
+    .then(function(j){
+      MODEL_DRAFTS = j.drafts.map(function(d){ return { n: d.name, d: d.text }; });
+      host.innerHTML = '<ul class="drafts">' + MODEL_DRAFTS.map(function(d, i){ return '<li><span class="dn">' + esc(d.n) + ' <span class="why">(model-written)</span></span><span class="dd">' + esc(d.d) + '</span><button type="button" class="btn small" data-usemodel="' + i + '">Use this draft</button></li>'; }).join("") + "</ul>";
+    })
+    .catch(function(e){ host.innerHTML = '<p class="terr">' + esc(e.message || "The model could not be reached.") + "</p>"; })
+    .then(function(){ btn.disabled = false; });
+}
+var MODEL_DRAFTS = [];
+
+/* reading progress: which chapters are done, where you were */
+var PROG = {};
+try { PROG = JSON.parse(localStorage.getItem("aether-progress") || "{}") || {}; } catch (e) {}
+function saveProg(){ try { localStorage.setItem("aether-progress", JSON.stringify(PROG)); } catch (e) {} }
+var scrollTimer = null;
+window.addEventListener("scroll", function(){
+  if (scrollTimer) return;
+  scrollTimer = setTimeout(function(){ scrollTimer = null; var r = current.route; if (!r || r === "" || r === "ask" || r === "workbench") return; PROG[r] = PROG[r] || {}; PROG[r].y = window.scrollY; PROG[r].t = Date.now(); PROG.last = r; saveProg(); }, 800);
+}, { passive: true });
+function markRead(route, done){ PROG[route] = PROG[route] || {}; PROG[route].done = done; PROG[route].t = Date.now(); saveProg(); }
+
+/* offline: register the service worker once the page is idle */
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", function(){ setTimeout(function(){ navigator.serviceWorker.register("/sw.js").catch(function(){}); }, 1500); });
 }
 
 render();

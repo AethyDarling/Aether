@@ -1,0 +1,13 @@
+{
+  "name": "The Aether Codex",
+  "short_name": "Aether Codex",
+  "description": "A study guide to a hard-magic system, with its equations, its catalogue of techniques, a calculator and a tutor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF9F4",
+  "theme_color": "#FBF9F4",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -10,15 +10,25 @@ A hard-magic system for fiction: the Aether Codex, plus a static site that prese
 - `tools/build.js` — regenerates the Codex-derived parts of `index.html`
   from `codex/`. Plain Node, no packages. `tools/annotations.js` holds the
   hand-written reading aids it merges in.
+- `src/worker.js` — the Cloudflare Worker behind `/api/*`: "Ask the Codex"
+  (retrieval over the Codex plus a Workers AI model, streamed with
+  citations), quiz questions and marking, and model-written Directory
+  drafts for the Workbench. `src/codex-index.json` is its retrieval index,
+  written by the build; never edit it by hand. No keys: the `ai` binding in
+  `wrangler.jsonc` is the free-tier account binding.
+- `sw.js`, `manifest.webmanifest`, `icon.svg`, `icon-maskable.svg`,
+  `fonts/` — the site installs as an app and reads offline; the two font
+  families are self-hosted (latin subsets only).
 - `README.md` — project front matter.
 - `wrangler.jsonc` / `.assetsignore` — Cloudflare Workers static-asset
   deploy config. The repo's Workers Builds Git integration (project
   `aether`) picks this up on every push with no dashboard-side build
   command needed: `assets.directory` is the repo root, and
   `.assetsignore` keeps `codex/`, `tools/`, `CLAUDE.md`, and `README.md`
-  off the deployed site since `index.html` is the only page. There's no
-  server script — the router is entirely hash-based (`#/foundations`, …),
-  so the Worker only ever has to answer `/` with `index.html`.
+  off the deployed site. The Worker runs first (`run_worker_first`),
+  answers `/api/*` itself and hands everything else to the asset layer;
+  the router is hash-based (`#/foundations`, …), so the asset layer only
+  ever has to answer `/` with `index.html`.
 - `roblox-reference.md` — a game-implementation digest of the Codex. Not
   canon, not deployed.
 
@@ -87,6 +97,22 @@ two kinds of content:
   times. When adding to the Codex, cite by number (`§3.5`, `Eq. 4.7`,
   `N-EM-01`) and the links, backlinks and symbol lists follow for free.
 
+The tutor (`#/ask`, Appendix D) is the one feature with a server side. The
+client posts to `/api/ask`, `/api/quiz` and `/api/draft`; the Worker does
+BM25 retrieval over the index, hands the best passages to Llama 3.1 8B on
+Workers AI with a system prompt that forbids answering from anything but
+those passages, and streams the answer as server-sent events preceded by a
+`sources` event. The client turns every §, Eq. and code in the answer into
+a link. Identical questions are served from the Cache API for a day and a
+per-IP limiter keeps a personal site inside the free daily allowance. If
+the endpoint is missing or the allowance is spent, the page says so and
+nothing else on the site depends on it. The model is a reader of the
+Codex, not an authority: keep the prompts grounded and cited, never let it
+present its own invention as Codex text.
+
+Reading progress (chapters marked read, last position) and the colour and
+text-size options live in localStorage only; nothing is sent anywhere.
+
 Routing is hash-based: `#/route`, with optional `?query` for page state
 (directory filters, workbench inputs) and `#anchor` for in-page targets, e.g.
 `#/grand-equation#eq-3-2` or `#/directory#N-EM-05`. To add a page: add a
@@ -152,4 +178,8 @@ Design rules, so edits stay coherent:
 - **Verify before pushing.** Run `node tools/build.js`, then load every
   route in a headless browser and check for console errors and horizontal
   overflow at 390px and 1366px (Playwright is fine for this), in both
-  schemes.
+  schemes. The Worker can be unit-tested in Node with a mocked `AI`
+  binding (rewrite the JSON import with `with { type: "json" }`); the real
+  model can only be exercised on a deployed preview, so after pushing,
+  hit `/api/health` and `/api/ask` on the branch preview URL before
+  merging.
