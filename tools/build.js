@@ -133,7 +133,7 @@ const EQ_ROUTE = {}, SEC_ROUTE = {};
    USAGE.eqCodes[n] = [codes]   directory entries that cite Eq. n
    EQ_SYMS[n]   = [symbol keys] symbols appearing in Eq. n's body
    SEC_TITLE[id] = "§3.5 The Fidelity Principle"                        */
-const USAGE = { eq: {}, sec: {}, eqCodes: {} }, EQ_SYMS = {}, SEC_TITLE = {};
+const USAGE = { eq: {}, sec: {}, eqCodes: {} }, EQ_SYMS = {}, SEC_TITLE = {}, EQ_TEXT = {};
 // pre-seed from the equation index so cross-links resolve even on first pass
 const SEC_FILE_HINT = { "4.4": "directory", "5": "glossary", "5.1": "glossary", "5.2": "glossary", "6": "glossary", "7": "changelog", "4": "techniques/novice", "4.0": "techniques/novice", "4.0d": "directory" };
 for (const r of EQROWS) {
@@ -287,11 +287,12 @@ function convert(md, route, opts) {
         symsHere.forEach((k) => { const g = groups.find((x) => x.d === SYM[k].d); if (g) g.keys.push(k); else groups.push({ d: SYM[k].d, keys: [k] }); });
         const where = groups.length ? '<dl class="eq-where">' + groups.map((g) => '<div><dt>' + g.keys.map((k) => "<code>" + esc(k) + "</code>").join(", ") + "</dt><dd>" + inline(g.d) + "</dd></div>").join("") + "</dl>" : "";
         const used = usedIn(n, route);
+        EQ_TEXT[n] = bodyTxt;
         out.push('<figure class="eq ' + meta.cls + '" id="' + eqId(n) + '">' +
-          '<figcaption><span class="eq-n">Eq. ' + n + '</span><span class="eq-t">' + inline(title) + "</span>" +
+          '<figcaption><span class="eq-n">Eq. ' + n + '</span><span class="eq-t" data-n="' + n + '">' + inline(title) + "</span>" +
           (note ? '<span class="eq-note">' + inline(note) + "</span>" : "") +
           '<a class="anchor" href="#/' + route + "#" + eqId(n) + '" aria-label="Link to this equation">#</a></figcaption>' +
-          "<pre>" + eqBody(bodyTxt) + "</pre>" + where + used + "</figure>");
+          '<div class="eqbody"><pre>' + eqBody(bodyTxt) + '</pre><span class="eqnum">(' + n + ")</span></div>" + where + used + "</figure>");
         toc.push({ id: eqId(n), text: "Eq. " + n + " " + title.replace(/[`*]/g, ""), level: 5 });
         i = j; continue;
       }
@@ -439,6 +440,7 @@ function parseDirectory(md) {
   return spells;
 }
 const dirMd = read("spell-directory");
+{ const m = dirMd.match(/\*\*Eq\. 4\.0d — [^\n]*\n```\n([\s\S]*?)```/); if (m) EQ_TEXT["4.0d"] = m[1].replace(/\n$/, ""); }
 const SPELLS_RAW = parseDirectory(dirMd);
 // Eq. 4.0d lives in the directory file; record it for cross-links
 EQ_ROUTE["4.0d"] = "directory";
@@ -525,7 +527,7 @@ const SECMAP = Object.assign({}, SEC_FILE_HINT, SEC_ROUTE);
 
 /* ───────────────────────── page templates ───────────────────────── */
 function linkList(items) {
-  return "<ul>" + items.map((it) => "<li>" + (it.href ? '<a href="' + esc(it.href) + '"' + (/^https?:/.test(it.href) ? ' target="_blank" rel="noopener"' : "") + ">" + it.label + "</a>" : it.label) + (it.note ? " <span class=\"why\">" + it.note + "</span>" : "") + "</li>").join("") + "</ul>";
+  return "<ul>" + items.map((it) => "<li>" + (it.href ? '<a href="' + esc(it.href) + '"' + (/^https?:/.test(it.href) ? ' class="ext" target="_blank" rel="noopener"' : "") + ">" + it.label + "</a>" : it.label) + (it.note ? " <span class=\"why\">" + it.note + "</span>" : "") + "</li>").join("") + "</ul>";
 }
 function pageTemplate(p) {
   const ann = ANN[p.route] || {};
@@ -539,7 +541,7 @@ function pageTemplate(p) {
   const toc = p.toc.filter((t) => t.level <= 5).map((t) => '<li class="l' + t.level + '"><a href="#/' + p.route + "#" + t.id + '">' + esc(t.text) + "</a></li>").join("");
   const tocExtra = (ann.background ? '<li class="l2"><a href="#/' + p.route + '#background">Background reading</a></li>' : "");
   return '<template id="t-' + slug(p.route) + '">\n<div class="page ' + p.tier + '" data-route="' + p.route + '">' +
-    '<header class="pagehead"><p class="part">' + esc(p.part) + " · " + esc(p.subtitle) + " · about " + mins + " min</p><h1>" + esc(PAGE_TITLE[p.file]) + "</h1>" +
+    '<header class="pagehead"><p class="part">' + esc(p.part) + " · Chapter " + (PAGES.indexOf(p) + 1) + " · " + esc(p.subtitle) + " · about " + mins + " min</p><h1>" + esc(PAGE_TITLE[p.file]) + "</h1>" +
     (ann.lede ? '<p class="lede">' + ann.lede + "</p>" : "") + "</header>" +
     '<div class="layout"><article class="article">' + learn + ideas + p.html + bg + "</article>" +
     '<aside class="toc" aria-label="On this page"><div class="toc-in"><span class="toc-h">On this page</span><ul>' + toc + tocExtra + "</ul></div></aside></div></div>\n</template>";
@@ -557,6 +559,7 @@ const dataJs = [
   "var SECMAP = " + JSON.stringify(SECMAP) + ";",
   "var EQMAP = " + JSON.stringify(EQ_ROUTE) + ";",
   "var SECUSE = " + JSON.stringify(USAGE.sec) + ";",
+  "var EQTEXT = " + JSON.stringify(EQ_TEXT) + ";",
   "var PAGEMETA = " + JSON.stringify(PAGES.map((p) => ({ r: p.route, t: PAGE_TITLE[p.file], mins: Math.max(2, Math.round(p.words / 200)), eqs: p.eqs.map((e) => e.n) }))) + ";",
   "var CODEX_VERSION = " + JSON.stringify((read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1]) + ";",
 ].join("\n");
