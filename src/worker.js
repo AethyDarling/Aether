@@ -18,7 +18,33 @@
 */
 import INDEX from "./codex-index.json";
 
-const MODEL = "@cf/meta/llama-3.1-8b-instruct";
+/* Candidate models, tried in order until one answers; Cloudflare retires
+   model IDs from time to time, so the first working one is remembered per
+   isolate and /api/models reports what this account can run today. */
+const MODELS = [
+  "@cf/meta/llama-3.1-8b-instruct-fast",
+  "@cf/meta/llama-3.1-8b-instruct-fp8",
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "@cf/meta/llama-4-scout-17b-16e-instruct",
+  "@cf/openai/gpt-oss-20b",
+  "@cf/google/gemma-3-12b-it",
+  "@cf/mistralai/mistral-small-3.1-24b-instruct",
+  "@cf/qwen/qwen3-30b-a3b-fp8",
+  "@cf/meta/llama-3.2-3b-instruct",
+  "@cf/meta/llama-3.1-8b-instruct"
+];
+let MODEL = MODELS[0];
+function retired(e) { const m = String(e && e.message || e); return /deprecat|not found|no such model|5028|5007|does not exist|unsupported/i.test(m); }
+async function runAI(env, opts) {
+  const start = MODELS.indexOf(MODEL);
+  const order = MODELS.slice(start).concat(MODELS.slice(0, start));
+  let last = null;
+  for (const m of order) {
+    try { const out = await env.AI.run(m, opts); MODEL = m; return out; }
+    catch (e) { last = e; if (!retired(e)) throw e; }
+  }
+  throw last || new Error("no model available");
+}
 const MAX_TOKENS = 700;
 const RATE = { windowMs: 10 * 60 * 1000, max: 24 }; // per IP, per isolate
 const hits = new Map();
@@ -100,7 +126,7 @@ async function sha(s) { const b = await crypto.subtle.digest("SHA-256", new Text
 async function streamWithSources(env, ctx, messages, sources, cacheKey) {
   const cache = (typeof caches !== "undefined" && caches.default) ? caches.default : null;
   if (cacheKey && cache) { try { const hit = await cache.match(cacheKey); if (hit) { const h = new Headers(hit.headers); h.set("x-aether-cache", "hit"); return new Response(hit.body, { headers: h }); } } catch (e) { /* cache is best-effort */ } }
-  const ai = await env.AI.run(MODEL, { messages, stream: true, max_tokens: MAX_TOKENS, temperature: 0.3 });
+  const ai = await runAI(env, { messages, stream: true, max_tokens: MAX_TOKENS, temperature: 0.3 });
   const enc = new TextEncoder();
   const head = enc.encode("event: sources\ndata: " + JSON.stringify(sources.map(sourceOut)) + "\n\n");
   const { readable, writable } = new TransformStream();
@@ -162,7 +188,7 @@ async function draft(request, env) {
   const sources = search(desc, "", 4).filter((s) => s.k === "spell");
   const shots = examples.length ? examples : sources.map((s) => s.x);
   const messages = [{ role: "system", content: DRAFT }, { role: "user", content: "Existing entries, for voice:\n\n" + shots.join("\n\n") + "\n\nThe working to write entries for:\n" + desc + "\n\nOutput the JSON now." }];
-  const out = await env.AI.run(MODEL, { messages, max_tokens: 900, temperature: 0.8 });
+  const out = await runAI(env, { messages, max_tokens: 900, temperature: 0.8 });
   const text = typeof out === "string" ? out : (out && out.response) || "";
   const m = text.match(/\{[\s\S]*\}/);
   let drafts = [];
@@ -184,6 +210,11 @@ export default {
         if (url.pathname === "/api/quiz") return await quiz(request, env, ctx);
         if (url.pathname === "/api/draft") return await draft(request, env);
         if (url.pathname === "/api/health") return json({ ok: true, chunks: INDEX.chunks.length, version: INDEX.version, model: MODEL });
+        if (url.pathname === "/api/models") {
+          const report = [];
+          for (const m of MODELS) { try { const out = await env.AI.run(m, { messages: [{ role: "user", content: "Reply with the single word: ready" }], max_tokens: 4 }); report.push({ model: m, ok: true, reply: String((out && out.response) || "").slice(0, 20) }); } catch (e) { report.push({ model: m, ok: false, error: String(e && e.message || e).slice(0, 100) }); } }
+          return json({ current: MODEL, report });
+        }
       } catch (e) {
         return json({ error: "The model is unavailable right now (" + (e && e.message ? e.message.slice(0, 120) : "unknown") + "). The daily free allowance may be used up; try again later." }, 503);
       }
