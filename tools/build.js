@@ -24,7 +24,8 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const CODEX = path.join(ROOT, "codex");
-const INDEX = path.join(ROOT, "index.html");
+const INDEX = path.join(ROOT, "codex.html");     // the textbook
+const GALAXY_HTML = path.join(ROOT, "index.html"); // the galaxy: the site's front door
 const ANN = require("./annotations.js");
 
 const read = (f) => fs.readFileSync(path.join(CODEX, f + ".md"), "utf8");
@@ -647,6 +648,46 @@ for (const s of SPELLS) {
   const s = 960 / Math.max(maxx - minx, maxy - miny);
   N.forEach((d) => { d.x = Math.round((d.x - minx) * s + 20); d.y = Math.round((d.y - miny) * s + 20); });
 })();
+/* ───────────────────────── the galaxy (GALAXY) ─────────────────────────
+   The same bodies as the map, but as an orbital hierarchy: every body names its
+   parent (section → chapter, equation → the section that defines it, symbol → the
+   section that defines it, entry → its tier's chapter) and carries a short blurb,
+   so index.html can place it in orbit and describe it without loading the text. */
+const GAL_PARENT = {};
+const secOfRoute = (route, id) => (MAP.byId["s:" + route + "#" + id] !== undefined ? "s:" + route + "#" + id : null);
+for (const d of MAP.nodes) {
+  if (d.kind === "section") GAL_PARENT[d.id] = "c:" + d.route;
+  else if (d.kind === "equation") { const n = d.id.slice(2); const h = EQ_HOME[n]; GAL_PARENT[d.id] = (h && secOfRoute(h.r, h.id)) || "c:" + (EQ_ROUTE[n] || "techniques/novice"); }
+  else if (d.kind === "spell") { const sp = SPELLS.find((s) => s.c === d.anchor); GAL_PARENT[d.id] = "c:" + (TIER_ROUTE_MAP[sp.t] || "techniques/novice"); }
+  else if (d.kind === "symbol") {
+    const k = d.id.slice(2); const src = SYM[k] ? String(SYM[k].src) : "";
+    const m = src.match(/§\s*(\d+(?:\.\d+)?)/); let p = null;
+    if (m && SEC_ROUTE[m[1]]) p = secOfRoute(SEC_ROUTE[m[1]], secId(m[1]));
+    if (!p) { const em = src.match(/Eq\.\s*(\d\.\d+[a-g]?)/); if (em && MAP.byId["e:" + em[1]] !== undefined) p = "e:" + em[1]; }
+    GAL_PARENT[d.id] = p || "c:foundations";
+  }
+}
+const FIRST_CHUNK = {}; for (const c of CHUNKS) { const key = c.k + ":" + c.r + "#" + c.id; if (!FIRST_CHUNK[key]) FIRST_CHUNK[key] = c.x; }
+const clip = (t, n) => { t = String(t || "").replace(/\s+/g, " ").trim(); if (t.length <= n) return t; return t.slice(0, n).replace(/\s+\S*$/, "") + "…"; };
+const galBlurb = (d) => {
+  if (d.kind === "chapter") { const a = ANN[d.route] || {}; return clip((a.lede || "").replace(/<[^>]+>/g, ""), 240); }
+  if (d.kind === "section") return clip(FIRST_CHUNK["sec:" + d.route + "#" + d.anchor] || "", 220);
+  if (d.kind === "equation") { const n = d.id.slice(2); const m = EQ_META[n] || {}; return clip(m.desc || "", 160); }
+  if (d.kind === "symbol") { const k = d.id.slice(2); return clip(SYM[k] ? SYM[k].d.replace(/[`*]/g, "") : "", 160); }
+  if (d.kind === "spell") { const sp = SPELLS.find((s) => s.c === d.anchor); return clip(sp.s, 200); }
+  return "";
+};
+const galExtra = (d) => {
+  if (d.kind === "equation") return EQ_TEXT[d.id.slice(2)].split("\n")[0].slice(0, 120);
+  if (d.kind === "spell") { const sp = SPELLS.find((s) => s.c === d.anchor); return [sp.t, sp.f || sp.p || sp.m || ""].join("|"); }
+  if (d.kind === "chapter") { const p = PAGES.find((x) => x.route === d.route); return p ? p.part + "|" + Math.max(2, Math.round(p.words / 200)) : ""; }
+  return "";
+};
+const GALAXY = {
+  v: (read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1],
+  b: MAP.nodes.map((d) => { let p = GAL_PARENT[d.id] === undefined ? -1 : MAP.byId[GAL_PARENT[d.id]]; if (p === undefined) p = d.kind === "chapter" ? -1 : MAP.byId["c:techniques/novice"]; return [d.id, d.kind, d.label, d.route, d.anchor, d.cls, p, galBlurb(d), galExtra(d), d.deg]; }),
+  l: MAP.edges.filter((e) => /^(cite|draws|mention|sym|def)$/.test(e[2])).map((e) => [e[0], e[1], e[2]])
+};
 const MAPDATA = { n: MAP.nodes.map((d) => [d.id, d.kind, d.label, d.x, d.y, d.route, d.anchor, d.cls, d.deg]), e: MAP.edges.map((e) => [e[0], e[1], e[2]]) };
 
 const dataJs = [
@@ -674,6 +715,12 @@ function replaceBetween(src, open, close, body) {
 html = replaceBetween(html, "<!-- BUILD:pages -->", "<!-- /BUILD:pages -->", pagesHtml);
 html = replaceBetween(html, "/* BUILD:data */", "/* /BUILD:data */", dataJs);
 fs.writeFileSync(INDEX, html);
+if (fs.existsSync(GALAXY_HTML)) {
+  let g = fs.readFileSync(GALAXY_HTML, "utf8");
+  g = replaceBetween(g, "/* BUILD:galaxy */", "/* /BUILD:galaxy */", "var GALAXY = " + JSON.stringify(GALAXY) + ";");
+  fs.writeFileSync(GALAXY_HTML, g);
+  console.log("wrote index.html (galaxy): " + GALAXY.b.length + " bodies · " + GALAXY.l.length + " links");
+}
 
 const bytes = Buffer.byteLength(html);
 console.log("wrote src/codex-index.json: " + CHUNKS.length + " chunks");
