@@ -86,9 +86,9 @@ function tablesIn(md) {
 const glossaryMd = read("glossary");
 const glossTables = tablesIn(glossaryMd);
 // §5 symbol table (first), §5.1 new symbols (2nd), §5.1 terms (3rd), §5.2 terms (4th), §6 eq index (5th)
-const SYMROWS = glossTables[0].body.concat(glossTables[1].body);
+const SYMROWS = glossTables[0].body.concat(glossTables[1].body, glossTables[4].body);
 const TERMROWS = glossTables[2].body.map((r) => r.concat(["v2.5"])).concat(glossTables[3].body.map((r) => r.concat(["v2.6"])));
-const EQROWS = glossTables[4].body;
+const EQROWS = glossTables[5].body;
 
 // Extra symbols the glossary defers to §1 for, so tooltips cover them too.
 const EXTRA_SYMS = [
@@ -443,11 +443,17 @@ function parseDirectory(md) {
 }
 const dirMd = read("spell-directory");
 { const m = dirMd.match(/\*\*Eq\. 4\.0d — [^\n]*\n```\n([\s\S]*?)```/); if (m) EQ_TEXT["4.0d"] = m[1].replace(/\n$/, ""); }
-const SPELLS_RAW = parseDirectory(dirMd);
+const SPELLS_RAW = parseDirectory(dirMd + "\n" + read("spell-directory-iii"));
+/* §8: one working form per entry, Eq. 8.n in Directory order (codex/working-equations.md) */
+const WORKINGS = [];
+{ const re = /^\*\*Eq\. (8\.\d+) — (.+?) \(([A-Z]+-(?:[A-Z]+-)?\d+)\), working form\*\*\n```\n([\s\S]*?)\n```\n([^\n]+)/gm; let m; const wq = read("working-equations");
+  while ((m = re.exec(wq))) { const base = (m[5].match(/Base: Eq\. (\d\.\d+[a-g]?)/) || [0, ""])[1]; WORKINGS.push({ n: m[1], name: m[2], c: m[3], form: m[4], desc: m[5].replace(/ Base: Eq\.[^\n]*$/, ""), base }); EQ_ROUTE[m[1]] = "directory"; } }
+const WORK_BY_CODE = {}; WORKINGS.forEach((w) => { WORK_BY_CODE[w.c] = w; });
 // Eq. 4.0d lives in the directory file; record it for cross-links
 EQ_ROUTE["4.0d"] = "directory";
 // count checks
-if (SPELLS_RAW.length !== 439) console.warn("WARNING: expected 439 directory entries, parsed " + SPELLS_RAW.length);
+if (SPELLS_RAW.length !== 2500) console.warn("WARNING: expected 2500 directory entries, parsed " + SPELLS_RAW.length);
+if (WORKINGS.length !== SPELLS_RAW.length) console.warn("WARNING: " + WORKINGS.length + " working forms for " + SPELLS_RAW.length + " entries");
 
 /* ───────────────────────── convert pages ───────────────────────── */
 const PAGE_TITLE = {};
@@ -511,7 +517,8 @@ const SPELLS = SPELLS_RAW.map((s) => {
   const dText = s.dmd.replace(/[`*]/g, "");
   const eqs = Array.from(new Set((s.dmd + " " + s.eq).match(/Eq\.\s\d\.\d+[a-g]?/g) || [])).map((e) => e.replace("Eq. ", ""));
   const codes = Array.from(new Set(dText.match(CODE_RE) || [])).filter((c) => c !== s.c && DIRCODES.has(c));
-  return { c: s.c, n: s.n, t: s.t, ch: s.ch, x: s.x, f: s.force, p: s.pair, m: s.mat, eq: s.eq, d: dHtml, s: dText, eqs, codes, back: [] };
+  const w = WORK_BY_CODE[s.c];
+  return { c: s.c, n: s.n, t: s.t, ch: s.ch, x: s.x, f: s.force, p: s.pair, m: s.mat, eq: s.eq, d: dHtml, s: dText, eqs, codes, back: [], w: w ? w.n : "" };
 });
 { const byC = {}; SPELLS.forEach((s) => { byC[s.c] = s; }); SPELLS.forEach((s) => s.codes.forEach((c) => { if (byC[c]) byC[c].back.push(s.c); })); }
 const SYM_EQS = {};
@@ -573,7 +580,7 @@ for (const n of Object.keys(EQ_TEXT)) {
   const m = EQ_META[n]; const syms = (EQ_SYMS[n] || []).map((k) => k + ": " + SYM[k].d.replace(/`/g, "")).join("; ");
   CHUNKS.push({ k: "eq", r: EQ_ROUTE[n] || "directory", id: eqId(n), t: "Equation " + n + (m ? ". " + m.name : ""), page: m ? m.sec : "", x: "Eq. " + n + (m ? " " + m.name + " (" + m.tier + "): " + m.desc : "") + "\n" + EQ_TEXT[n] + (syms ? "\nwhere " + syms : "") });
 }
-for (const s of SPELLS_RAW) CHUNKS.push({ k: "spell", r: "directory", id: s.c, t: s.c + " " + s.n, page: s.t, x: "[" + s.c + "] " + s.n + " (" + s.t + (s.force ? ", " + s.force : "") + (s.pair ? ", " + s.pair : "") + (s.mat ? ", " + s.mat : "") + "). " + (s.eq ? s.eq + " " : "") + s.dmd.replace(/[`*]/g, "") });
+for (const s of SPELLS_RAW) { const w = WORK_BY_CODE[s.c]; CHUNKS.push({ k: "spell", r: "directory", id: s.c, t: s.c + " " + s.n, page: s.t, x: "[" + s.c + "] " + s.n + " (" + s.t + (s.force ? ", " + s.force : "") + (s.pair ? ", " + s.pair : "") + (s.mat ? ", " + s.mat : "") + "). " + (s.eq ? s.eq + " " : "") + s.dmd.replace(/[`*]/g, "") + (w ? " Working form (Eq. " + w.n + "): " + w.form.replace(/\s+/g, " ") + " " + w.desc.replace(/[`*]/g, "") : "") }); }
 for (const r of SYMROWS.concat(EXTRA_SYMS)) CHUNKS.push({ k: "sym", r: "glossary", id: "symbols", t: r[0].replace(/`/g, ""), page: "Glossary", x: r[0].replace(/`/g, "") + ": " + r[1].replace(/`/g, "") + " (defined in " + r[2].replace(/`/g, "") + ")" });
 fs.mkdirSync(path.join(ROOT, "src"), { recursive: true });
 // a hash of every chunk's text, so the Worker can tell whether src/codex-vectors.json (built by tools/embed.mjs) still matches
@@ -618,6 +625,7 @@ for (const n of Object.keys(EQ_SYMS)) for (const k of EQ_SYMS[n]) { mapNode("y:"
 for (const n of Object.keys(USAGE.eq)) for (const u of USAGE.eq[n]) { if (u.r === "changelog") continue; const sid = "s:" + u.r + "#" + u.id; if (MAP.byId[sid] !== undefined) mapEdge(sid, "e:" + n, "cite", 0.8); }
 for (const sN of Object.keys(USAGE.sec)) { const tr = SEC_ROUTE[sN]; if (!tr) continue; const target = "s:" + tr + "#" + secId(sN); for (const u of USAGE.sec[sN]) { if (u.r === "changelog") continue; const sid = "s:" + u.r + "#" + u.id; if (MAP.byId[sid] !== undefined) mapEdge(sid, target, "cite", 0.6); } }
 for (const s of SPELLS) {
+  if (s.x >= 3) continue;
   mapNode("p:" + s.c, "spell", s.c + " " + s.n, "directory", s.c, s.ch);
   const tr = TIER_ROUTE_MAP[s.t]; if (tr && MAP.byId["c:" + tr] !== undefined) mapEdge("p:" + s.c, "c:" + tr, "tier", 0.35);
   for (const n of s.eqs) mapEdge("p:" + s.c, "e:" + n, "draws", 0.5);
@@ -688,6 +696,15 @@ const GALAXY = {
   b: MAP.nodes.map((d) => { let p = GAL_PARENT[d.id] === undefined ? -1 : MAP.byId[GAL_PARENT[d.id]]; if (p === undefined) p = d.kind === "chapter" ? -1 : MAP.byId["c:techniques/novice"]; return [d.id, d.kind, d.label, d.route, d.anchor, d.cls, p, galBlurb(d), galExtra(d), d.deg]; }),
   l: MAP.edges.filter((e) => /^(cite|draws|mention|sym|def)$/.test(e[2])).map((e) => [e[0], e[1], e[2]])
 };
+// Expansion III's entries and every working form join the galaxy (not the flat map)
+{
+  const GB = GALAXY.b, GL = GALAXY.l, gid = {}; GB.forEach((b, i) => { gid[b[0]] = i; });
+  const add = (row) => { gid[row[0]] = GB.length; GB.push(row); return GB.length - 1; };
+  for (const s of SPELLS) { if (s.x < 3) continue; const chap = gid["c:" + (TIER_ROUTE_MAP[s.t] || "techniques/novice")]; add(["p:" + s.c, "spell", s.c + " " + s.n, "directory", s.c, s.ch, chap, clip(s.s, 200), [s.t, s.f || s.p || s.m || ""].join("|"), s.eqs.length + s.codes.length]); }
+  for (const s of SPELLS) { if (s.x < 3) continue; const i = gid["p:" + s.c]; for (const n of s.eqs) if (gid["e:" + n] !== undefined) GL.push([i, gid["e:" + n], "draws"]); for (const c of s.codes) if (gid["p:" + c] !== undefined) GL.push([i, gid["p:" + c], "mention"]); }
+  for (const w of WORKINGS) { const ps = gid["p:" + w.c]; if (ps === undefined) continue; const sp = SPELLS.find((x) => x.c === w.c); const i = add(["w:" + w.n, "working", "Eq. " + w.n + " " + w.name + ", working form", "directory", eqId(w.n), sp ? sp.ch : "found", ps, clip(w.desc.replace(/[`*]/g, ""), 220), w.form.split("\n")[0].slice(0, 140), 2]); GL.push([ps, i, "def"]); if (gid["e:" + w.base] !== undefined) GL.push([i, gid["e:" + w.base], "cite"]); }
+  GALAXY.workings = WORKINGS.length;
+}
 const MAPDATA = { n: MAP.nodes.map((d) => [d.id, d.kind, d.label, d.x, d.y, d.route, d.anchor, d.cls, d.deg]), e: MAP.edges.map((e) => [e[0], e[1], e[2]]) };
 
 const dataJs = [
@@ -702,6 +719,7 @@ const dataJs = [
   "var EQTEXT = " + JSON.stringify(EQ_TEXT) + ";",
   "var PAGEMETA = " + JSON.stringify(PAGES.map((p) => ({ r: p.route, t: PAGE_TITLE[p.file], mins: Math.max(2, Math.round(p.words / 200)), eqs: p.eqs.map((e) => e.n) }))) + ";",
   "var MAPDATA = " + JSON.stringify(MAPDATA) + ";",
+  "var WORKINGS = " + JSON.stringify(WORKINGS.map((w) => ({ n: w.n, c: w.c, name: w.name, form: w.form, d: inline(w.desc), base: w.base }))) + ";",
   "var CODEX_VERSION = " + JSON.stringify((read("overview").match(/\*\*Version:\*\*\s*([\d.]+)/) || [0, "?"])[1]) + ";",
 ].join("\n");
 
@@ -717,9 +735,10 @@ html = replaceBetween(html, "/* BUILD:data */", "/* /BUILD:data */", dataJs);
 fs.writeFileSync(INDEX, html);
 if (fs.existsSync(GALAXY_HTML)) {
   let g = fs.readFileSync(GALAXY_HTML, "utf8");
-  g = replaceBetween(g, "/* BUILD:galaxy */", "/* /BUILD:galaxy */", "var GALAXY = " + JSON.stringify(GALAXY) + ";");
+  g = replaceBetween(g, "/* BUILD:galaxy */", "/* /BUILD:galaxy */", "var GALAXY_VERSION = " + JSON.stringify(GALAXY.v) + ", GALAXY_BODIES = " + GALAXY.b.length + ";");
   fs.writeFileSync(GALAXY_HTML, g);
-  console.log("wrote index.html (galaxy): " + GALAXY.b.length + " bodies · " + GALAXY.l.length + " links");
+  fs.writeFileSync(path.join(ROOT, "galaxy.json"), JSON.stringify(GALAXY));
+  console.log("wrote galaxy.json: " + GALAXY.b.length + " bodies · " + GALAXY.l.length + " links (" + (fs.statSync(path.join(ROOT, "galaxy.json")).size / 1024).toFixed(0) + " KB)");
 }
 
 const bytes = Buffer.byteLength(html);

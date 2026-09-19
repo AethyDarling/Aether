@@ -1,7 +1,7 @@
 # THE AETHER CODEX — Overview & File Map
 ### Master index for the Aether Power System reference files
 
-**Version:** 2.6
+**Version:** 2.7
 **Status:** Living document — see `codex/changelog.md` for how to extend it
 **Notation:** All equations use plain ASCII (no Greek letters, hats, daggers, or special symbols) so they can be typed directly into a manuscript. See the changelog (v1.3 entry) for the legacy symbol mapping if cross-referencing earlier drafts.
 
@@ -27,6 +27,8 @@ The Codex was originally a single document; as of v2.2 it is split into files un
 | `codex/techniques-legend.md` | Legend-scale extensions of the Overlay Fold and Bound Singularity — the same mathematics, held across a standing domain | §4.10 | Eq. 4.22–4.23 |
 | `codex/techniques-ascension.md` | The Ascent Beyond Legend — closeness/progress equations for the four unattainable paths | §4.11 | Eq. 4.24–4.27 |
 | `codex/spell-directory.md` | The Spell Directory — coded catalog of named techniques, Novice through Beyond Legend (every rank except Sovereign, whose canonical workings live in §4.1–§4.3) | §4.4 | Eq. 4.0d |
+| `codex/spell-directory-iii.md` | Directory Expansion III — 2,061 further named techniques, bringing the catalogue to 2,500 | §4.4 (cont.) | — |
+| `codex/working-equations.md` | Working Forms — every Directory entry's base equation specialised to it, one per technique | §8 | Eq. 8.1–8.2500 |
 | `codex/glossary.md` | Symbol & Term Glossary and the Equation Index | §5, §6 | — |
 | `codex/changelog.md` | Version history and extension conventions | §7 | — |
 

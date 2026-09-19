@@ -172,13 +172,13 @@ const DRAFT = `You write entries for the Spell Directory of the Aether Codex, a 
 
 /* ───────── helpers ───────── */
 function json(obj, status, extra) { return new Response(JSON.stringify(obj), { status: status || 200, headers: Object.assign({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }, extra || {}) }); }
-function limited(request) {
+function limited(request, max) {
   const ip = request.headers.get("cf-connecting-ip") || "anon";
   const now = Date.now();
   let h = hits.get(ip); if (!h || now - h.t0 > RATE.windowMs) { h = { t0: now, n: 0 }; hits.set(ip, h); }
   h.n++;
   if (hits.size > 5000) hits.clear();
-  return h.n > RATE.max;
+  return h.n > (max || RATE.max);
 }
 function passagesBlock(cs) { return cs.map((c, i) => "[" + (i + 1) + "] (" + cite(c) + " · " + c.t + ")\n" + c.x.slice(0, 1800)).join("\n\n"); }
 async function sha(s) { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).slice(0, 16).map((x) => x.toString(16).padStart(2, "0")).join(""); }
@@ -294,7 +294,8 @@ export default {
       if (request.method === "OPTIONS") return new Response(null, { status: 204 });
       if (request.method !== "POST") return json({ error: "POST only." }, 405);
       if (!env.AI) return json({ error: "Workers AI is not bound on this deployment." }, 503);
-      if (limited(request)) return json({ error: "Slow down a little: the free tier allows a few dozen questions per ten minutes." }, 429, { "retry-after": "600" });
+      if (url.pathname !== "/api/embed" && limited(request)) return json({ error: "Slow down a little: the free tier allows a few dozen questions per ten minutes." }, 429, { "retry-after": "600" });
+      if (url.pathname === "/api/embed" && limited(request, 160)) return json({ error: "Embedding is limited to 160 batches per ten minutes." }, 429, { "retry-after": "600" });
       try {
         if (url.pathname === "/api/ask") return await ask(request, env, ctx);
         if (url.pathname === "/api/quiz") return await quiz(request, env, ctx);
