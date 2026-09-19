@@ -1,6 +1,7 @@
 // Cloudflare Workers deploy config for the Aether Codex site.
-// The site itself is static: index.html, the fonts, the service worker and
-// the manifest are served from the repo root as static assets. The Worker
+// The site itself is static: index.html (the galaxy), codex.html (the
+// textbook), the fonts, the service worker and the manifest are served from
+// the repo root as static assets. The Worker
 // in src/worker.js adds three small endpoints under /api/* backed by
 // Workers AI (the free-tier account binding; no key, nothing stored). The
 // repo's Workers Builds Git integration deploys this on every push with no
@@ -21,7 +22,11 @@
 		// Any path Wrangler can't map to a file (a stray direct link, a
 		// trailing slash variant) falls back to index.html rather than a
 		// bare 404, since every real "page" here is client-side anyway.
-		"not_found_handling": "single-page-application"
+		"not_found_handling": "single-page-application",
+		// Serve /codex.html by its literal name (the default would 307 it to
+		// /codex, which the service worker's precache cannot follow); "/"
+		// still resolves to index.html through the SPA fallback above.
+		"html_handling": "none"
 	},
 	"ai": {
 		"binding": "AI"
