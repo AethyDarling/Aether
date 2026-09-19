@@ -1,15 +1,25 @@
 # Aether
 
-A hard-magic system for fiction: the Aether Codex, plus a static site that presents it.
+A hard-magic system for fiction: the Aether Codex, plus a static site that
+presents it two ways: as a galaxy to fly through (`index.html`, the front
+door) and as a textbook to read (`codex.html`).
 
 ## Layout
 
 - `codex/` — the source of truth. Sixteen markdown files, one per area.
-- `index.html` — the site. One self-contained file, no runtime dependencies;
-  deployable from the repo root via GitHub Pages or Cloudflare Workers.
-- `tools/build.js` — regenerates the Codex-derived parts of `index.html`
-  from `codex/`. Plain Node, no packages. `tools/annotations.js` holds the
-  hand-written reading aids it merges in.
+- `index.html` — the galaxy. One hand-written file, no libraries: the
+  aether field as a fragment shader beneath everything, dust tracing three
+  spiral arms, and every chapter, section, equation, symbol and technique
+  as a body in Keplerian orbit, drawn with WebGL point sprites. Its data
+  (`GALAXY`, between the `/* BUILD:galaxy */` markers) is written by the
+  build. See "The galaxy" below.
+- `codex.html` — the textbook. One self-contained file, no runtime
+  dependencies; every `#/route#anchor` link works identically on both
+  files (the galaxy flies to the body, the textbook scrolls to the passage).
+- `tools/build.js` — regenerates the Codex-derived parts of `codex.html`
+  and the `GALAXY` data in `index.html` from `codex/`. Plain Node, no
+  packages. `tools/annotations.js` holds the hand-written reading aids it
+  merges in.
 - `src/worker.js` — the Cloudflare Worker behind `/api/*`: "Ask the Codex"
   (hybrid retrieval over the Codex plus a Workers AI model, streamed with
   citations), quiz questions and marking, model-written Directory drafts
@@ -35,8 +45,8 @@ A hard-magic system for fiction: the Aether Codex, plus a static site that prese
   `.assetsignore` keeps `codex/`, `tools/`, `CLAUDE.md`, and `README.md`
   off the deployed site. The Worker runs first (`run_worker_first`),
   answers `/api/*` itself and hands everything else to the asset layer;
-  the router is hash-based (`#/foundations`, …), so the asset layer only
-  ever has to answer `/` with `index.html`.
+  both routers are hash-based, so the asset layer only ever has to answer
+  `/` with `index.html` (the galaxy) and `/codex.html` (the textbook).
 - `roblox-reference.md` — a game-implementation digest of the Codex. Not
   canon, not deployed.
 
@@ -71,9 +81,60 @@ a fenced formula) and then its prose, with Adept entries stating their pair
 as `*(EM + Strong)*`; the glossary's tables stay in their current order
 (symbols, expansion symbols, expansion terms ×2, equation index).
 
-## The site
+## The galaxy
 
-`index.html` presents the Codex as a multi-page reference. It is one file with
+`index.html` is the site's front door: the whole Codex as a navigable galaxy,
+built to match the system's own premise (aether is the field beneath the
+forces; here it is the field beneath everything drawn). No libraries, no
+images: two WebGL contexts and a 2D canvas.
+
+- **The field** is a full-screen fragment shader (domain-warped value noise
+  flowing slowly, a warm glow at the projected core, and up to eight
+  ripples that expand from wherever you tap: a caster's tap sources a
+  ripple, and bodies flash as the front passes them). It renders at 0.6×
+  resolution for phones.
+- **The layout is the system.** The Grand Equation is the core, because
+  everything cites it; Foundations and the Hierarchy sit in the bulge; the
+  three spiral arms are the three coupling channels (gauge gold, quark
+  ember, metric steel), and each technique chapter sits on its arm at a
+  radius set by its tier, so distance from the core is depth in the Power
+  Hierarchy; the Ascent is beyond the arms. Sections orbit their chapter,
+  equations orbit the section that defines them, symbols orbit the section
+  or equation that defines them, techniques form a belt around their tier's
+  star, the tools are stations near the core, the changelog is a comet on
+  an eccentric orbit. Orbital speeds follow Kepler (`w ∝ r^-1.5`); "Hold
+  orbits" freezes the simulation. The hierarchy (parent of every body) and
+  a short blurb per body come from the build as `GALAXY`; the orbital
+  elements are derived deterministically from body ids at load.
+- **Level of detail is distance.** Chapters and stations are always drawn
+  and labelled; sections, equations, symbols and techniques appear as the
+  camera nears them, labels later still, and anything connected to the
+  selection is always shown. Labels avoid each other by priority. Lines
+  are the citation graph (the same edges as the Map), drawn inside the
+  system you are near and highlighted for the selection, plus the
+  selection's orbit rings.
+- **Reading happens in the galaxy.** Selecting a body opens the viewport:
+  blurb, orbital data, channels (its neighbours, each a jump), and "Read
+  the text here", which fetches `codex.html` once, parses it, and lifts
+  the exact section, figure, entry or definition into the viewport, links
+  and hover symbols intact. Links to bodies fly to them; anything else
+  opens the textbook docked (`codex.html?embed=1#/…`, which hides the
+  chrome via `body.embed`). Stations dock the tools the same way.
+- **Controls:** drag turns, shift-drag or two fingers slide, scroll or
+  pinch flies, tap selects, tap again or double-tap flies to it, tapping
+  the dark sources a ripple, `/` navigates by name, `←` walks back along
+  the trail, `Esc` closes, `Space` holds orbits. `#/route#anchor` in the
+  URL flies straight there on load and is kept in sync with the selection.
+- **Design:** deep indigo, the aether in teal, sector hues carried over
+  from the textbook, JetBrains Mono for readouts and Source Serif for
+  names and text, translucent panels with hairlines, no icons, no imagery.
+  Nothing on the galaxy page is essential: the textbook is linked from
+  the brand and from every viewport, and shown outright when WebGL is
+  unavailable.
+
+## The textbook
+
+`codex.html` presents the Codex as a multi-page reference. It is one file with
 two kinds of content:
 
 - **Generated pages** (between the `<!-- BUILD:pages -->` markers, and the
@@ -211,9 +272,13 @@ Design rules, so edits stay coherent:
   `<pre>` or a wide table needs `min-width:0` on the grid item and an
   `overflow-x:auto` wrapper. Tap targets are at least 38px tall.
 - **Verify before pushing.** Run `node tools/build.js`, then load every
-  route in a headless browser and check for console errors and horizontal
-  overflow at 390px and 1366px (Playwright is fine for this), in both
-  schemes. The Worker can be unit-tested in Node with a mocked `AI`
+  textbook route in a headless browser and check for console errors and
+  horizontal overflow at 390px and 1366px (Playwright is fine for this),
+  in both schemes; then load the galaxy with software WebGL
+  (`--use-gl=swiftshader`) at both sizes, fly to an equation, a section
+  and a technique by hash, read each in the viewport, dock a station, and
+  check the console (Chromium's own swiftshader deprecation warnings are
+  expected; nothing else is). The Worker can be unit-tested in Node with a mocked `AI`
   binding (rewrite the two JSON imports with `with { type: "json" }`);
   the real models can only be exercised on a deployed preview, so after
   pushing, hit `/api/health` (it reports the index hash, whether the

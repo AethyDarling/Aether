@@ -1,10 +1,15 @@
 # Aether
 
 A hard-magic system for fiction: the Aether Codex (`codex/`, sixteen markdown
-files, the source of truth) and a single-file reference site (`index.html`)
-that presents it, with a searchable 439-entry Spell Directory, a symbol
-glossary with hover definitions, and a Spell Workbench for building new
-techniques from the Codex's own equations.
+files, the source of truth) presented two ways. `index.html` is a galaxy
+you fly through, drawn by hand in WebGL with no libraries: the aether
+field as a shader beneath everything, the Grand Equation at the core, the
+three coupling channels as spiral arms, and every section, equation,
+symbol and technique a body in orbit around what defines it, readable in
+place. `codex.html` is the same Codex as a textbook, with a searchable
+439-entry Spell Directory, a symbol glossary with hover definitions, and a
+Spell Workbench for building new techniques from the Codex's own
+equations. Every `#/route#anchor` link works on both.
 
 Around the text: a tutor, "Ask the Codex", which answers questions (in
 explaining, Socratic, deriving, comparing and in-the-story modes) and sets
