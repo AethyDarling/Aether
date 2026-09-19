@@ -141,7 +141,30 @@
 
 ---
 
+### 5.3 Working-Form Symbols (v2.7)
+
+*Symbols introduced by §8's working forms (`codex/working-equations.md`). Every working form is its tier's base equation with a shape factor added; these are the handful of directory-local quantities the forms use to say what a technique is pointed at. None redefines a symbol above.*
+
+| Symbol | Definition | Introduced in |
+|---|---|---|
+| `eta_<code>` | A working form's shape factor: the dimensionless fraction (0 to 1) of a sourced distortion that the technique's usual target actually takes up, fixed by the target's geometry; `eta = 1` recovers the base equation. Written with the entry's code, e.g. `eta_NEM06` | §8 |
+| `S_<code>` | An Artisan entry's own solved eigenvector family, the `S` of Eq. 3.1e restricted to that entry's material | §8, Eq. 4.16 |
+| `G_site` | A Warden entry's site factor: the fraction of `R_proven` the surveyed geometry actually occupies, fixed by the survey and re-checked with it | §8, Eq. 4.20 |
+| `D_cycle` | Duty fraction of a held casting: the share of `t_hold` during which `J_cast` is actually sourced | §8 |
+| `theta_arc` | Half-angle of a directionally shaped distortion; the effect is present inside the arc and absent outside it | §8 |
+| `T_pulse` | Period of a pulsed casting; `Win_p(t; T_pulse)` is the pulse's activation window in the sense of Eq. 4.13 | §8 |
+| `R_reach` | Reach of a discharge or throw before the distortion falls below what the target can take; for a spark, `V_out / V_break` | §8 |
+| `N_rep`, `w_1`, `w_2` | A Journeyman round's repetition count and the live durations of its two windows; the round takes `N_rep * (w_1 + w_2) + (2 N_rep - 1) * tau_switch` | §8, Eq. 4.13 |
+| `m_t`, `A_t` | Mass and working area of a technique's target | §8 |
+| `T_0`, `T_target`, `T_amb`, `T_eq` | Starting, wanted, ambient and settled temperatures of a thermal working | §8, Eq. 4.0a |
+| `h_loss`, `h_vap` | A target's heat loss to its surroundings per degree, and the heat needed to drive off a unit mass of water | §8 |
+| `V_break` | The potential at which a discharge crosses the gap to its target | §8 |
+| `t_cure_0`, `t_spoil_0`, `t_reach` | A process's unassisted curing or spoiling time, and the time a thermal working needs to reach `T_target` | §8, Eq. 4.0d |
+| `L_dom`, `v_survey` | A standing work's domain length and the pace at which its order can re-survey it, whose ratio sets `t_drift` | §8, Eq. 4.22 |
+
 ## 6. Equation Index
+
+*Eq. 8.1–8.2500, the working forms, are one per Directory entry in Directory order and are indexed in `codex/working-equations.md` rather than repeated here; each cites its base equation from this table.*
 
 | Eq. | Name | Section | Tier | Description |
 |---|---|---|---|---|

@@ -3,8 +3,8 @@
    load; if the network is away, the last good copy is served. Fonts are
    cache-first (they never change without a rename). API calls are never
    cached here. */
-const VERSION = "aether-sw-v3";
-const SHELL = ["/", "/index.html", "/codex.html", "/manifest.webmanifest",
+const VERSION = "aether-sw-v4";
+const SHELL = ["/", "/index.html", "/codex.html", "/galaxy.json", "/manifest.webmanifest",
   "/fonts/SourceSerif4-400-normal-latin.woff2", "/fonts/SourceSerif4-600-normal-latin.woff2",
   "/fonts/SourceSerif4-400-italic-latin.woff2", "/fonts/SourceSerif4-600-italic-latin.woff2",
   "/fonts/JetBrainsMono-400-normal-latin.woff2", "/fonts/JetBrainsMono-500-normal-latin.woff2"];

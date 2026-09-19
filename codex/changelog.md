@@ -9,6 +9,12 @@
 
 *New techniques, refinements, and derivations are appended to the relevant Codex file with a version bump and a one-line summary here, then given their own subsection under the relevant Part. New equations continue the running numbering in §6 (`codex/glossary.md`).*
 
+**v2.7 — Directory Expansion III and the Working Forms**
+- Added Directory Expansion III (`codex/spell-directory-iii.md`): 2,061 further named techniques, bringing the Spell Directory to 2,500 entries. Codes continue each tier's numbering; prevalence weighting follows §3.3 (Novice 800, Journeyman 300, Adept 360, Artisan 260, Master 160, Warden 120, Legend 40, Beyond Legend 21). Every Journeyman entry names its two Novice components, every Adept entry its pair, every Artisan entry its material and unmodelled neighbours, every Warden entry its proven geometry.
+- Added §8, Working Forms (`codex/working-equations.md`): Eq. 8.1–8.2500, one per Directory entry in Directory order, each the tier's base equation specialised to that entry by a shape factor `eta_<code>` whose meaning the form states. Nothing in a working form alters a base equation.
+- Added §5.3, the working-form symbols (`eta_<code>`, `S_<code>`, `G_site`, `D_cycle`, `theta_arc`, `T_pulse`, `R_reach`, `N_rep`, `w_1`/`w_2`, target quantities).
+- No changes to existing entries or equations; Sovereign remains uncatalogued.
+
 **v2.6 — Spell Directory Expansion II**
 - Spell Directory Expansion II — 200 further catalogued techniques across every directory tier (Novice 60, Journeyman 40, Adept 34, Artisan 26, Master 16, Warden 12, Legend 8, Beyond Legend 4), appended to §4.4 as Directory Expansion II, plus §5 trade-vocabulary additions. No new global equation numbers; no changes to existing entries
 
