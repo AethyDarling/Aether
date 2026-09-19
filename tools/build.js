@@ -671,7 +671,7 @@ const FIRST_CHUNK = {}; for (const c of CHUNKS) { const key = c.k + ":" + c.r + 
 const clip = (t, n) => { t = String(t || "").replace(/\s+/g, " ").trim(); if (t.length <= n) return t; return t.slice(0, n).replace(/\s+\S*$/, "") + "…"; };
 const galBlurb = (d) => {
   if (d.kind === "chapter") { const a = ANN[d.route] || {}; return clip((a.lede || "").replace(/<[^>]+>/g, ""), 240); }
-  if (d.kind === "section") return clip(FIRST_CHUNK["sec:" + d.route + "#" + d.anchor] || "", 220);
+  if (d.kind === "section") return clip((FIRST_CHUNK["sec:" + d.route + "#" + d.anchor] || "").replace(/^(§[\d.]+ )?[^#]{0,140}# /, ""), 220);
   if (d.kind === "equation") { const n = d.id.slice(2); const m = EQ_META[n] || {}; return clip(m.desc || "", 160); }
   if (d.kind === "symbol") { const k = d.id.slice(2); return clip(SYM[k] ? SYM[k].d.replace(/[`*]/g, "") : "", 160); }
   if (d.kind === "spell") { const sp = SPELLS.find((s) => s.c === d.anchor); return clip(sp.s, 200); }
