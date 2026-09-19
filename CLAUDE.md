@@ -90,8 +90,9 @@ images: two WebGL contexts and a 2D canvas.
 
 - **The field** is a full-screen fragment shader (domain-warped value noise
   flowing slowly, a warm glow at the projected core, and up to eight
-  ripples that expand from wherever you tap: a caster's tap sources a
-  ripple, and bodies flash as the front passes them). It renders at 0.6×
+  small local ripples that expand from wherever you tap: a caster's tap
+  sources a ripple, and bodies flash as the front passes them; keep them
+  local, a screen-wide wave reads as a glitch). It renders at 0.6×
   resolution for phones.
 - **The layout is the system.** The Grand Equation is the core, because
   everything cites it; Foundations and the Hierarchy sit in the bulge; the
@@ -109,17 +110,35 @@ images: two WebGL contexts and a 2D canvas.
 - **Level of detail is distance.** Chapters and stations are always drawn
   and labelled; sections, equations, symbols and techniques appear as the
   camera nears them, labels later still, and anything connected to the
-  selection is always shown. Labels avoid each other by priority. Lines
+  selection is always shown. Labels avoid each other by priority and carry
+  a tick once read or visited. Lines
   are the citation graph (the same edges as the Map), drawn inside the
   system you are near and highlighted for the selection, plus the
   selection's orbit rings.
 - **Reading happens in the galaxy.** Selecting a body opens the viewport:
-  blurb, orbital data, channels (its neighbours, each a jump), and "Read
-  the text here", which fetches `codex.html` once, parses it, and lifts
-  the exact section, figure, entry or definition into the viewport, links
-  and hover symbols intact. Links to bodies fly to them; anything else
-  opens the textbook docked (`codex.html?embed=1#/…`, which hides the
-  chrome via `body.embed`). Stations dock the tools the same way.
+  blurb, orbital data, channels (its neighbours, each a jump) and, for a
+  section, equation, technique or symbol, its full text at once: the page
+  fetches `codex.html` once, parses it, and lifts the exact section,
+  figure, entry or definition into the viewport, links and hover symbols
+  intact. A chapter opens with its learning layer and offers the whole
+  chapter in a widened viewport plus "Mark as read" (the same
+  `aether-progress` key the textbook uses); visited bodies are ticked
+  (`aether-visited`). The viewport footer walks the book in reading order
+  (chapters, then their sections), so the whole Codex can be read without
+  leaving the galaxy. Links to bodies fly to them; anything else opens the
+  textbook docked (`codex.html?embed=1#/…`, which hides the chrome via
+  `body.embed`).
+- **The bridge** is the one bar: Chart (overview), Library (the book's
+  contents in reading order with the preface and your progress), Archive
+  (the Directory, searchable and filterable by tier, every row a flight),
+  Lexicon (symbols, terms and the equation index), then the docked tools
+  (Workbench, tutor, drill, spellbook), a six-stop Tour and help. Library,
+  Archive and Lexicon are native panels (the "deck") fed from the
+  textbook's data arrays, parsed out of `codex.html`'s `BUILD:data`
+  region on first use; the tools stay iframes in embed mode. The console
+  also searches every paragraph of the text once the book has been fetched.
+  `#/directory`, `#/glossary`, `#/library` and `#/tour` open the
+  matching panel.
 - **Controls:** drag turns, shift-drag or two fingers slide, scroll or
   pinch flies, tap selects, tap again or double-tap flies to it, tapping
   the dark sources a ripple, `/` navigates by name, `←` walks back along
